@@ -1,3 +1,24 @@
+<script>
+import { steps, events } from './data.js'
+
+export default {
+  data() {
+    return {
+      steps,
+      events
+    }
+  },
+  methods: {
+    showStep(step) {
+      alert(step.text)
+    },
+    showDetails(event) {
+      alert(event.description)
+    }
+  }
+}
+</script>
+
 <template>
   <div>
 
@@ -103,52 +124,20 @@
 
     <div class="steps-container">
 
-      <div class="step-card">
-        <div class="step-heading">01 - Registrierung</div>
-        <p class="step-desc">
-          Erstelle deinen kostenlosen Account mit Benutzername, Name, E-Mail-Adresse 
-          und Passwort. Die Registrierung dauert weniger als eine Minute.
-        </p>
-      </div>
+      <div class="step-card" v-for="step in steps" :key="step.id">
+        <div class="step-heading">
+          {{ step.id }} - {{ step.title }}
+        </div>
 
-      <div class="step-card">
-        <div class="step-heading">02 - Anmelden</div>
         <p class="step-desc">
-          Melde dich mit deiner E-Mail und deinem Passwort an.
+          {{ step.text }}
         </p>
-      </div>
 
-      <div class="step-card">
-        <div class="step-heading">03 - Fahrzeug anlegen</div>
-        <p class="step-desc">
-          Hinterlege dein Fahrzeug im Profil: Marke, Modell, Baujahr und Kategorie. 
-          Dein Auto wird für die Teilnahme an kategorisierten Events benötigt.
-        </p>
-      </div>
+        <button @click="showStep(step)">
+          Details
+        </button>
 
-      <div class="step-card">
-        <div class="step-heading">04 - Events entdecken</div>
-        <p class="step-desc">
-          Dursuche die Liste der verfügbaren Events um Treffen in deiner Nähe zu finden.
-        </p>
       </div>
-
-      <div class="step-card">
-        <div class="step-heading">05 - Event beitreten</div>
-        <p class="step-desc">
-          Wähle ein passendes Event aus und bestätige deine Teilnahme. Du wirst 
-          sofort in die Teilnehmerliste eingetragen. Stornieren ist jederzeit möglich.
-        </p>
-      </div>
-
-      <div class="step-card">
-        <div class="step-heading">06 - Meet Up</div>
-        <p class="step-desc">
-          Erscheine zum Event, treffe Gleichgesinnte, tausche Erfahrungen aus und 
-          entdecke faszinierende Fahrzeuge, ganz nach deinen Interessen.
-        </p>
-      </div>
-
     </div>
   </div>
 </section>
@@ -168,24 +157,14 @@
 
     <div class="event-cards-list">
 
-      <div class="event-mini-card">
+      <div class="event-mini-card" v-for="event in events" :key="event.id">
         <div>
-          <div class="event-mini-title">Coupe Night</div>
+          <div class="event-mini-title">{{ event.title }}</div>
           <div class="event-mini-info">
-            Alfred-Wachtel-Straße, 78462 Konstanz • Sa, 19:00 Uhr • 8/20 Plätze
+            {{ event.location }} • {{ event.time }} • {{ event.spots }}
           </div>
         </div>
-        <div class="event-mini-badge">Coupes</div>
-      </div>
-
-      <div class="event-mini-card">
-        <div>
-          <div class="event-mini-title">Oldtimer Treffen</div>
-          <div class="event-mini-info">
-            Seestraße 21, 78464 Konstanz • So, 14:00 Uhr • 12/30 Plätze
-          </div>
-        </div>
-        <div class="event-mini-badge oldtimer-badge">Oldtimer</div>
+        <div class="event-mini-badge" :class="event.category + '-badge'">{{ event.category }}</div>
       </div>
 
     </div>
