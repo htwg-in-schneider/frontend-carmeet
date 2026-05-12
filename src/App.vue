@@ -129,11 +129,7 @@ export default {
           {{ step.id }} - {{ step.title }}
         </div>
 
-        <p class="step-desc">
-          {{ step.text }}
-        </p>
-
-        <button @click="showStep(step)">
+        <button class="details-btn" @click="showStep(step)">
           Details
         </button>
 
@@ -164,7 +160,20 @@ export default {
             {{ event.location }} • {{ event.time }} • {{ event.spots }}
           </div>
         </div>
-        <div class="event-mini-badge" :class="event.category + '-badge'">{{ event.category }}</div>
+        <div class="event-bottom">
+
+        <div 
+          class="event-mini-badge"
+          :class="event.category + '-badge'"
+        >
+          {{ event.category }}
+        </div>
+
+        <button class="details-btn" @click="showDetails(event)">
+          Details
+        </button>
+
+</div>
       </div>
 
     </div>

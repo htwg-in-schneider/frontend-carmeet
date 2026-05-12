@@ -431,6 +431,30 @@ section {
   background: rgba(250,11,219,0.08);
 }
 
+.details-btn {
+  background: none;
+  border: none;
+  color: #00DDFF;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+
+  text-decoration: underline;
+  padding: 0;
+}
+
+.details-btn:hover {
+  color: #66eaff;
+}
+
+.event-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 10px;
+}
+
 /* ─── UPGRADE SECTION ─── */
 .upgrade-layout {
   display: grid;
