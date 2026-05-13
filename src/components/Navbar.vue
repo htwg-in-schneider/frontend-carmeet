@@ -1,4 +1,5 @@
 <script setup>
+import Button from './Button.vue'
 </script>
 
 <template>
@@ -19,8 +20,8 @@
       </ul>
 
       <div class="nav-actions">
-        <a href="#" class="btn-nav btn-login">Anmelden</a>
-        <a href="#" class="btn-nav btn-register">Registrieren</a>
+        <Button href="#" variant="secondary" size="sm">Anmelden</Button>
+        <Button href="#" variant="accent" size="sm">Registrieren</Button>
       </div>
 
       <label for="navBurger" class="burger" aria-label="Menü öffnen">
@@ -36,8 +37,8 @@
       <a href="#">Über uns</a>
 
       <div class="mob-btns">
-        <a href="#" class="btn-nav btn-login">Anmelden</a>
-        <a href="#" class="btn-nav btn-register">Registrieren</a>
+        <Button href="#" variant="secondary" size="sm">Anmelden</Button>
+        <Button href="#" variant="accent" size="sm">Registrieren</Button>
       </div>
     </div>
   </div>
@@ -89,31 +90,6 @@ nav {
   color: #00DDFF;
 }
 
-.btn-nav {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 10.4px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  padding: 8px 19.2px;
-  border-radius: 30px;
-  text-decoration: none;
-  transition: all 0.3s;
-}
-.btn-login {
-  background: transparent;
-  color: #00DDFF;
-  border: 1.5px solid #00DDFF;
-}
-.btn-login:hover {
-  background: rgba(0,221,255,0.1);
-}
-.btn-register {
-  background: linear-gradient(90deg, #FA0BDB, #00DDFF);
-  color: white;
-  border: none;
-}
-.btn-register:hover { opacity: 0.85; }
 
 .nav-burger {
   display: none;

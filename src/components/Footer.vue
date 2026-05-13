@@ -1,4 +1,5 @@
 <script setup>
+import FooterLink from './FooterLink.vue'
 </script>
 
 <template>
@@ -31,26 +32,26 @@
       <div class="footer-col">
         <h4>Plattform</h4>
         <ul>
-          <li><a href="#what">Was ist CarMeet</a></li>
-          <li><a href="#how">Wie es funktioniert</a></li>
-          <li><a href="#events">Events entdecken</a></li>
+          <li><FooterLink href="#what">Was ist CarMeet</FooterLink></li>
+          <li><FooterLink href="#how">Wie es funktioniert</FooterLink></li>
+          <li><FooterLink href="#events">Events entdecken</FooterLink></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Account</h4>
         <ul>
-          <li><a href="#">Registrieren</a></li>
-          <li><a href="#">Anmelden</a></li>
-          <li><a href="#how-to-manager">Eventmanager</a></li>
+          <li><FooterLink href="#">Registrieren</FooterLink></li>
+          <li><FooterLink href="#">Anmelden</FooterLink></li>
+          <li><FooterLink href="#how-to-manager">Eventmanager</FooterLink></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Unternehmen</h4>
         <ul>
-          <li><a href="#">Über uns</a></li>
-          <li><a href="#">Impressum</a></li>
+          <li><FooterLink href="#">Über uns</FooterLink></li>
+          <li><FooterLink href="#">Impressum</FooterLink></li>
         </ul>
       </div>
 
@@ -107,11 +108,6 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 9.6px;
-}
-.footer-col ul li a {
-  color: white;
-  text-decoration: none;
-  font-size: 14.4px;
 }
 
 .social-links {
