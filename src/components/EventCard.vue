@@ -6,24 +6,19 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['show-details'])
 </script>
 
 <template>
   <div class="event-mini-card">
-    <div>
-      <div class="event-mini-title">{{ event.title }}</div>
-      <div class="event-mini-info">
-        {{ event.location }} • {{ event.time }} • {{ event.spots }}
+    <div class="event-left">
+      <div class="event-title-row">
+        <div class="event-mini-title">{{ event.title }}</div>
+        <router-link :to="'/event/' + event.id" class="details-btn">Details</router-link>
       </div>
+      <div class="event-mini-info">{{ event.date }}</div>
     </div>
-    <div class="event-bottom">
-      <div class="event-mini-badge" :class="event.category + '-badge'">
-        {{ event.category }}
-      </div>
-      <button class="details-btn" @click="emit('show-details', event)">
-        Details
-      </button>
+    <div class="event-mini-badge" :class="event.category + '-badge'">
+      {{ event.category }}
     </div>
   </div>
 </template>
@@ -74,12 +69,16 @@ const emit = defineEmits(['show-details'])
   background: rgba(250,11,219,0.08);
 }
 
-.event-bottom {
+.event-left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 4px;
+}
+
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .details-btn {

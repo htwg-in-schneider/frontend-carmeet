@@ -1,14 +1,6 @@
 <script setup>
 import { steps, events } from '../data.js'
 import EventCard from './EventCard.vue'
-
-function showStep(step) {
-  alert(step.text)
-}
-
-function showDetails(event) {
-  alert(event.description)
-}
 </script>
 
 <template>
@@ -56,9 +48,9 @@ function showDetails(event) {
             <div class="step-heading">
               {{ step.id }} - {{ step.title }}
             </div>
-            <button class="details-btn" @click="showStep(step)">
+            <router-link :to="'/step/' + step.id" class="details-btn">
               Details
-            </button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -80,7 +72,6 @@ function showDetails(event) {
             v-for="event in events"
             :key="event.id"
             :event="event"
-            @show-details="showDetails"
           />
         </div>
       </div>
@@ -227,8 +218,7 @@ section {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 16px;
-  padding: 28.8px;
-  min-height: 260px;
+  padding: 20px 24px;
   position: relative;
   overflow: hidden;
 }

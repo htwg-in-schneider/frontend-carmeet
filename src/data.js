@@ -35,8 +35,8 @@ export const events = [
   {
     id: 1,
     title: "Coupe Night",
-    location: "Konstanz",
-    time: "Sa, 19:00 Uhr",
+    address: "Alfred-Wachtel-Straße 8, 78462 Konstanz",
+    date: "Sa, 19:00 Uhr",
     spots: "8/20",
     category: "coupes",
     description: "Treffen für Coupe Fahrzeuge."
@@ -44,8 +44,8 @@ export const events = [
   {
     id: 2,
     title: "Oldtimer Treffen",
-    location: "Konstanz",
-    time: "So, 14:00 Uhr",
+    address: "Seestraße 21, 78464 Konstanz",
+    date: "So, 14:00 Uhr",
     spots: "12/30",
     category: "oldtimer",
     description: "Klassiker Treffen."
