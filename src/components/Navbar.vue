@@ -31,7 +31,7 @@
     <div class="burger-open" id="burgerOpen">
       <a href="#what">Was ist CarMeet</a>
       <a href="#how">Wie es funktioniert</a>
-      <a href="#events">Events auf der Karte</a>
+      <a href="#events">Events</a>
       <a href="#how-to-manager">Eventmanager werden</a>
       <a href="#">Über uns</a>
 
