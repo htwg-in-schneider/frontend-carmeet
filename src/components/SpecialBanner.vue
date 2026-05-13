@@ -1,9 +1,12 @@
 <script setup>
 import Button from './Button.vue'
+import { useBannerStore } from '../stores/banner.js'
+
+const banner = useBannerStore()
 </script>
 
 <template>
-  <section id="top">
+  <section v-if="banner.isVisible" id="top">
     <div class="top-grid"></div>
     <div class="top-glow top-glow-1"></div>
     <div class="top-glow top-glow-2"></div>
@@ -23,6 +26,8 @@ import Button from './Button.vue'
       <Button href="#" variant="accent">Jetzt kostenlos starten</Button>
       <Button href="#how" variant="secondary">Wie es funktioniert</Button>
     </div>
+
+    <button class="close-btn" @click="banner.hideBanner()" aria-label="Banner schließen">✕</button>
   </section>
 </template>
 
@@ -104,6 +109,22 @@ import Button from './Button.vue'
   position: relative;
 }
 
+
+.close-btn {
+  position: absolute;
+  top: 88px;
+  right: 5%;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #00DDFF;
+}
 
 @media (max-width: 600px) {
   .top-btn { flex-direction: column; align-items: center; }
