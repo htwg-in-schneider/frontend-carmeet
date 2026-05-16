@@ -1,6 +1,11 @@
 <script setup>
-import { steps, events } from '../data.js'
+import { onMounted } from 'vue'
+import { steps } from '../data.js'
+import { useEventsStore } from '../stores/events.js'
 import EventCard from './EventCard.vue'
+
+const store = useEventsStore()
+onMounted(() => store.fetchEvents())
 </script>
 
 <template>
@@ -67,9 +72,11 @@ import EventCard from './EventCard.vue'
           Die verfügbaren Events auf einen Blick.
         </p>
 
-        <div class="event-cards-list">
+        <p v-if="store.loading" class="status-text">Lade Events...</p>
+        <p v-else-if="store.error" class="status-text error-text">{{ store.error }}</p>
+        <div v-else class="event-cards-list">
           <EventCard
-            v-for="event in events"
+            v-for="event in store.events"
             :key="event.id"
             :event="event"
           />
@@ -253,6 +260,15 @@ section {
 }
 
 /* ─── EVENTS LIST ─── */
+.status-text {
+  margin-top: 40px;
+  font-size: 15px;
+  color: #8b8fa8;
+}
+.error-text {
+  color: #FA0BDB;
+}
+
 .event-cards-list {
   display: flex;
   flex-direction: column;

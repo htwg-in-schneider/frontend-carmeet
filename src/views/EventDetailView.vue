@@ -1,11 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { events } from '../data.js'
+import { useEventsStore } from '../stores/events.js'
 
 const route = useRoute()
+const store = useEventsStore()
 
-const event = computed(() => events.find(e => e.id === Number(route.params.id)))
+onMounted(() => store.fetchEvents())
+
+const event = computed(() => store.getEventById(Number(route.params.id)))
 </script>
 
 <template>
