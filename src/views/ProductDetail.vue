@@ -19,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <div class="detail-wrapper">
-    <a href="/#dummy-products" class="back-link">← Zurück zu Dummy Products</a>
+    <router-link :to="{ path: '/', hash: '#dummy-products' }" class="back-link">← Zurück zu Dummy Products</router-link>
 
     <div v-if="error" class="not-found">
       <p>{{ error }}</p>
