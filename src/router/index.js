@@ -19,6 +19,11 @@ const router = createRouter({
       name: 'step-detail',
       component: () => import('../views/StepDetailView.vue'),
     },
+    {
+      path: '/dummy-products/:id',
+      name: 'dummy-product-detail',
+      component: () => import('../views/ProductDetail.vue'),
+    },
   ],
 })
 

@@ -17,6 +17,7 @@ import Button from './Button.vue'
         <li><a href="#events">Events</a></li>
         <li><a href="#how-to-manager">Eventmanager</a></li>
         <li><a href="#">Über uns</a></li>
+        <li><a href="/#dummy-products">Dummy Products</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -35,6 +36,7 @@ import Button from './Button.vue'
       <a href="#events">Events</a>
       <a href="#how-to-manager">Eventmanager werden</a>
       <a href="#">Über uns</a>
+      <a href="/#dummy-products">Dummy Products</a>
 
       <div class="mob-btns">
         <Button href="#" variant="secondary" size="sm">Anmelden</Button>
@@ -153,6 +155,7 @@ nav {
   padding: 11.2px 19.2px;
   border-radius: 30px;
 }
+
 
 @media (max-width: 1500px) {
   .nav-links { display: none; }
