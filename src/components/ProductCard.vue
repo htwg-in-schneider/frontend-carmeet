@@ -18,6 +18,9 @@ defineProps({
     </div>
 
     <div class="card-actions">
+      <router-link :to="'/products/' + product.id" class="btn-detail">
+        Details
+      </router-link>
       <router-link :to="'/products/edit/' + product.id" class="btn-edit">
         Bearbeiten
       </router-link>
@@ -80,6 +83,21 @@ defineProps({
   display: flex;
   gap: 10px;
 }
+
+.btn-detail {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #00DDFF, #9955FF);
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.btn-detail:hover { opacity: 0.85; }
 
 .btn-edit {
   font-family: 'Orbitron', sans-serif;
