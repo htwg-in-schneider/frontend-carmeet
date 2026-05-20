@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const backHref = import.meta.env.BASE_URL + '#dummy-products'
 const product = ref(null)
 const error = ref(null)
 
@@ -20,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <div class="detail-wrapper">
-    <a :href="backHref" class="back-link">← Zurück zu Dummy Products</a>
+    <router-link :to="{ path: '/', hash: '#dummy-products' }" class="back-link">← Zurück zu Dummy Products</router-link>
 
     <div v-if="error" class="not-found">
       <p>{{ error }}</p>
