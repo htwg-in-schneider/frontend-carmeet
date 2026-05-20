@@ -17,7 +17,7 @@ import Button from './Button.vue'
         <li><a href="#events">Events</a></li>
         <li><a href="#how-to-manager">Eventmanager</a></li>
         <li><a href="#">Über uns</a></li>
-        <li><router-link :to="{ path: '/', hash: '#products' }">Products</router-link></li>
+        <li><router-link to="/products">Products</router-link></li>
       </ul>
 
       <div class="nav-actions">
@@ -36,7 +36,7 @@ import Button from './Button.vue'
       <a href="#events">Events</a>
       <a href="#how-to-manager">Eventmanager werden</a>
       <a href="#">Über uns</a>
-      <router-link :to="{ path: '/', hash: '#products' }">Products</router-link>
+      <router-link to="/products">Products</router-link>
 
       <div class="mob-btns">
         <Button href="#" variant="secondary" size="sm">Anmelden</Button>

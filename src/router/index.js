@@ -28,9 +28,19 @@ const router = createRouter({
       component: () => import('../views/StepDetailView.vue'),
     },
     {
-      path: '/products/:id',
-      name: 'product-detail',
-      component: () => import('../views/ProductDetail.vue'),
+      path: '/products',
+      name: 'products',
+      component: () => import('../views/ProductCatalog.vue'),
+    },
+    {
+      path: '/products/create',
+      name: 'product-create',
+      component: () => import('../views/CreateProduct.vue'),
+    },
+    {
+      path: '/products/edit/:id',
+      name: 'product-edit',
+      component: () => import('../views/EditProduct.vue'),
     },
   ],
 })
