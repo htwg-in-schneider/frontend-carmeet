@@ -28,8 +28,8 @@ const router = createRouter({
       component: () => import('../views/StepDetailView.vue'),
     },
     {
-      path: '/dummy-products/:id',
-      name: 'dummy-product-detail',
+      path: '/products/:id',
+      name: 'product-detail',
       component: () => import('../views/ProductDetail.vue'),
     },
   ],

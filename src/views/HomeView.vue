@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import SpecialBanner from '../components/SpecialBanner.vue'
 import MainSection from '../components/MainSection.vue'
 import ProductCard from '../components/ProductCard.vue'
+import { getProducts } from '../services/productService.js'
 
 const products = ref([])
 const productsError = ref(null)
@@ -10,9 +11,7 @@ const productsLoading = ref(true)
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://dummyjson.com/products')
-    const data = await res.json()
-    products.value = data.products
+    products.value = await getProducts()
   } catch (e) {
     console.log(e)
     productsError.value = 'Failed to load products'
@@ -28,14 +27,15 @@ onMounted(async () => {
 
   <div class="divider"></div>
 
-  <section id="dummy-products">
+  <section id="products">
     <div class="section-inner">
-      <div class="section-label">DummyJSON API</div>
-      <h2 class="section-title">Dummy Products</h2>
-      <p class="section-text">Dynamisch geladen von dummyjson.com</p>
+      <div class="section-label">Backend API</div>
+      <h2 class="section-title">Products</h2>
+      <p class="section-text">Geladen von localhost:8081/api/product</p>
 
       <div v-if="productsLoading" class="state-msg">Produkte werden geladen…</div>
       <div v-else-if="productsError" class="state-msg error">{{ productsError }}</div>
+      <div v-else-if="products.length === 0" class="state-msg">Keine Produkte gefunden.</div>
       <div v-else class="product-grid">
         <ProductCard v-for="product in products" :key="product.id" :product="product" />
       </div>

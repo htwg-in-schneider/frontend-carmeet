@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { getProductById } from '../services/productService.js'
 
 const route = useRoute()
 const product = ref(null)
@@ -8,8 +9,7 @@ const error = ref(null)
 
 onMounted(async () => {
   try {
-    const res = await fetch(`https://dummyjson.com/products/${route.params.id}`)
-    product.value = await res.json()
+    product.value = await getProductById(route.params.id)
   } catch (e) {
     console.log(e)
     error.value = 'Failed to load product'
@@ -19,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <div class="detail-wrapper">
-    <router-link :to="{ path: '/', hash: '#dummy-products' }" class="back-link">← Zurück zu Dummy Products</router-link>
+    <router-link :to="{ path: '/', hash: '#products' }" class="back-link">← Zurück zur Produktliste</router-link>
 
     <div v-if="error" class="not-found">
       <p>{{ error }}</p>
@@ -28,33 +28,37 @@ onMounted(async () => {
     <div v-else-if="product" class="detail-card">
       <div class="detail-top">
         <div class="detail-images">
-          <img :src="product.thumbnail" :alt="product.title" class="detail-main-img" />
-          <div class="detail-thumbs">
-            <img
-              v-for="(img, i) in product.images?.slice(0, 4)"
-              :key="i"
-              :src="img"
-              :alt="product.title"
-              class="detail-thumb"
-            />
-          </div>
+          <img
+            v-if="product.imageUrl"
+            :src="product.imageUrl"
+            :alt="product.name"
+            class="detail-main-img"
+          />
+          <div v-else class="detail-img-placeholder"></div>
         </div>
 
         <div class="detail-info">
-          <div class="detail-category">{{ product.category }}</div>
-          <h1 class="detail-title">{{ product.title }}</h1>
-          <div v-if="product.brand" class="detail-brand">{{ product.brand }}</div>
+          <div v-if="product.category" class="detail-category">{{ product.category }}</div>
+          <h1 class="detail-title">{{ product.name }}</h1>
 
-          <div class="detail-meta">
-            <span class="detail-rating">★ {{ product.rating }}</span>
-            <span class="detail-stock">{{ product.stock }} auf Lager</span>
-          </div>
-
-          <p class="detail-description">{{ product.description }}</p>
-
-          <div v-if="product.tags?.length" class="detail-tags">
-            <span v-for="tag in product.tags" :key="tag" class="tag">{{ tag }}</span>
-          </div>
+          <dl class="detail-fields">
+            <template v-if="product.id != null">
+              <dt>ID</dt>
+              <dd>{{ product.id }}</dd>
+            </template>
+            <template v-if="product.description">
+              <dt>Beschreibung</dt>
+              <dd>{{ product.description }}</dd>
+            </template>
+            <template v-if="product.price != null">
+              <dt>Preis</dt>
+              <dd>{{ product.price }} €</dd>
+            </template>
+            <template v-if="product.category">
+              <dt>Kategorie</dt>
+              <dd>{{ product.category }}</dd>
+            </template>
+          </dl>
         </div>
       </div>
     </div>
@@ -106,18 +110,12 @@ onMounted(async () => {
   aspect-ratio: 4 / 3;
 }
 
-.detail-thumbs {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-.detail-thumb {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
+.detail-img-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0,221,255,0.06), rgba(250,11,219,0.06));
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .detail-category {
@@ -134,58 +132,31 @@ onMounted(async () => {
   font-size: clamp(20px, 3vw, 32px);
   font-weight: 700;
   color: white;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
   line-height: 1.3;
 }
 
-.detail-brand {
-  font-size: 13px;
-  color: #8b8fa8;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.detail-fields {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 10px 24px;
+  margin-top: 8px;
 }
 
-.detail-meta {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.detail-rating {
-  font-size: 14px;
-  color: #f5c518;
-}
-
-.detail-stock {
-  font-size: 13px;
-  color: #8b8fa8;
-}
-
-.detail-description {
-  font-size: 15px;
-  line-height: 1.8;
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 24px;
-}
-
-.detail-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.tag {
+.detail-fields dt {
   font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
-  letter-spacing: 1px;
+  font-size: 9px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(0,221,255,0.08);
-  color: #00DDFF;
-  border: 1px solid rgba(0,221,255,0.2);
+  color: #8b8fa8;
+  padding-top: 3px;
+}
+
+.detail-fields dd {
+  font-size: 15px;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .not-found {
