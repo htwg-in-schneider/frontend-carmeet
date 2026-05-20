@@ -1,8 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import ProductFilter from '../components/ProductFilter.vue'
 import { getProducts } from '../services/productService.js'
+
+const route = useRoute()
 
 const products = ref([])
 const loading = ref(true)
@@ -22,11 +25,16 @@ async function loadProducts(filter = {}) {
   }
 }
 
-function handleFilter(filter) {
-  loadProducts(filter)
-}
-
-onMounted(() => loadProducts())
+watch(
+  () => route.query,
+  (query) => {
+    loadProducts({
+      name: query.name || undefined,
+      category: query.category || undefined,
+    })
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <template>
@@ -34,12 +42,12 @@ onMounted(() => loadProducts())
     <div class="catalog-header">
       <div>
         <div class="catalog-label">Backend API</div>
-        <h1 class="catalog-title">Produktkatalog</h1>
+        <h1 class="catalog-title">Autokatalog</h1>
       </div>
-      <router-link to="/products/create" class="btn-create">+ Neues Produkt</router-link>
+      <router-link to="/products/create" class="btn-create">+ Neues Auto hinzufügen</router-link>
     </div>
 
-    <ProductFilter @filter="handleFilter" />
+    <ProductFilter />
 
     <div v-if="loading" class="state-msg">Produkte werden geladen…</div>
     <div v-else-if="error" class="state-msg error">{{ error }}</div>

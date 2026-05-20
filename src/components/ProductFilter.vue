@@ -1,14 +1,19 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getCategories } from '../services/categoryService.js'
 
-const emit = defineEmits(['filter'])
+const route = useRoute()
+const router = useRouter()
 
-const searchName = ref('')
-const selectedCategory = ref('')
+const searchName = ref(route.query.name || '')
+const selectedCategory = ref(route.query.category || '')
 const categories = ref([])
 const categoriesLoading = ref(true)
 const categoriesError = ref(null)
+
+watch(() => route.query.category, (val) => { selectedCategory.value = val || '' })
+watch(() => route.query.name,     (val) => { searchName.value = val || '' })
 
 onMounted(async () => {
   try {
@@ -22,18 +27,14 @@ onMounted(async () => {
 })
 
 function applyFilter() {
-  const filter = {}
-  if (searchName.value.trim()) filter.name = searchName.value.trim()
-  if (selectedCategory.value !== '') filter.category = selectedCategory.value
-  console.log('[ProductFilter] emit filter:', filter)
-  emit('filter', filter)
+  const query = {}
+  if (searchName.value.trim()) query.name = searchName.value.trim()
+  if (selectedCategory.value !== '') query.category = selectedCategory.value
+  router.push({ query })
 }
 
 function resetFilter() {
-  searchName.value = ''
-  selectedCategory.value = ''
-  console.log('[ProductFilter] emit filter: {} (reset)')
-  emit('filter', {})
+  router.push({ query: {} })
 }
 </script>
 
