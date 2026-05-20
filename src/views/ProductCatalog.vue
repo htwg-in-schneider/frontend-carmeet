@@ -1,22 +1,32 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ProductCard from '../components/ProductCard.vue'
+import ProductFilter from '../components/ProductFilter.vue'
 import { getProducts } from '../services/productService.js'
 
 const products = ref([])
 const loading = ref(true)
 const error = ref(null)
 
-onMounted(async () => {
+async function loadProducts(filter = {}) {
+  loading.value = true
+  error.value = null
   try {
-    products.value = await getProducts()
+    products.value = await getProducts(filter)
+    console.log(`[ProductCatalog] Loaded ${products.value.length} products`, filter)
   } catch (e) {
-    console.log(e)
-    error.value = 'Produkte konnten nicht geladen werden.'
+    console.error('[ProductCatalog] Laden fehlgeschlagen:', e)
+    error.value = `Produkte konnten nicht geladen werden: ${e.message}`
   } finally {
     loading.value = false
   }
-})
+}
+
+function handleFilter(filter) {
+  loadProducts(filter)
+}
+
+onMounted(() => loadProducts())
 </script>
 
 <template>
@@ -29,9 +39,13 @@ onMounted(async () => {
       <router-link to="/products/create" class="btn-create">+ Neues Produkt</router-link>
     </div>
 
+    <ProductFilter @filter="handleFilter" />
+
     <div v-if="loading" class="state-msg">Produkte werden geladen…</div>
     <div v-else-if="error" class="state-msg error">{{ error }}</div>
-    <div v-else-if="products.length === 0" class="state-msg">Keine Produkte vorhanden.</div>
+    <div v-else-if="products.length === 0" class="state-msg">
+      Keine Produkte gefunden.
+    </div>
 
     <div v-else class="product-grid">
       <ProductCard v-for="product in products" :key="product.id" :product="product" />
@@ -50,7 +64,7 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -100,7 +114,7 @@ onMounted(async () => {
 
 .state-msg {
   text-align: center;
-  padding: 80px 0;
+  padding: 60px 0;
   font-size: 16px;
   color: #8b8fa8;
 }

@@ -12,9 +12,15 @@ async function handleResponse(res) {
   return res.json()
 }
 
-export async function getProducts() {
-  console.log('[productService] GET', BASE_URL)
-  const res = await fetch(BASE_URL)
+export async function getProducts(params = {}) {
+  const query = new URLSearchParams()
+  if (params.name?.trim()) query.append('name', params.name.trim())
+  if (params.category != null && params.category !== '') {
+    query.append('category', params.category)
+  }
+  const url = query.toString() ? `${BASE_URL}?${query}` : BASE_URL
+  console.log('[productService] GET', url)
+  const res = await fetch(url)
   const data = await handleResponse(res)
   if (Array.isArray(data)) return data
   if (data?.content) return data.content
