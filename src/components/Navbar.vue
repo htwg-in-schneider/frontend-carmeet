@@ -1,5 +1,7 @@
 <script setup>
 import Button from './Button.vue'
+
+const dummyHref = import.meta.env.BASE_URL + '#dummy-products'
 </script>
 
 <template>
@@ -17,7 +19,7 @@ import Button from './Button.vue'
         <li><a href="#events">Events</a></li>
         <li><a href="#how-to-manager">Eventmanager</a></li>
         <li><a href="#">Über uns</a></li>
-        <li><router-link :to="{ path: '/', hash: '#dummy-products' }">Dummy Products</router-link></li>
+        <li><a :href="dummyHref">Dummy Products</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -36,7 +38,7 @@ import Button from './Button.vue'
       <a href="#events">Events</a>
       <a href="#how-to-manager">Eventmanager werden</a>
       <a href="#">Über uns</a>
-      <router-link :to="{ path: '/', hash: '#dummy-products' }">Dummy Products</router-link>
+      <a :href="dummyHref">Dummy Products</a>
 
       <div class="mob-btns">
         <Button href="#" variant="secondary" size="sm">Anmelden</Button>
