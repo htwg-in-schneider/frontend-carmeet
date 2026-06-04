@@ -1,13 +1,13 @@
 <script setup>
 defineProps({
-  href: { type: String, default: '#' }
+  href: { type: String, default: '#' },
+  to:   { type: [String, Object], default: null },
 })
 </script>
 
 <template>
-  <a :href="href" class="footer-link">
-    <slot />
-  </a>
+  <router-link v-if="to" :to="to" class="footer-link"><slot /></router-link>
+  <a v-else :href="href" class="footer-link"><slot /></a>
 </template>
 
 <style scoped>

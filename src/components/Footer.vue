@@ -32,9 +32,10 @@ import FooterLink from './FooterLink.vue'
       <div class="footer-col">
         <h4>Plattform</h4>
         <ul>
-          <li><FooterLink href="#what">Was ist CarMeet</FooterLink></li>
-          <li><FooterLink href="#how">Wie es funktioniert</FooterLink></li>
-          <li><FooterLink href="#events">Events entdecken</FooterLink></li>
+          <li><FooterLink :to="{ path: '/', hash: '#what' }">Was ist CarMeet</FooterLink></li>
+          <li><FooterLink :to="{ path: '/', hash: '#how' }">Wie es funktioniert</FooterLink></li>
+          <li><FooterLink :to="{ path: '/', hash: '#events' }">Events entdecken</FooterLink></li>
+          <li><FooterLink :to="{ path: '/products' }">Angemeldete Autos</FooterLink></li>
         </ul>
       </div>
 
@@ -43,7 +44,7 @@ import FooterLink from './FooterLink.vue'
         <ul>
           <li><FooterLink href="#">Registrieren</FooterLink></li>
           <li><FooterLink href="#">Anmelden</FooterLink></li>
-          <li><FooterLink href="#how-to-manager">Eventmanager</FooterLink></li>
+          <li><FooterLink :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager</FooterLink></li>
         </ul>
       </div>
 

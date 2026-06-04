@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductById, updateProduct, deleteProduct } from '../services/productService.js'
+import { getCategories } from '../services/categoryService.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,12 +11,17 @@ const form = ref({ title: '', description: '', categoryId: '' })
 const loading = ref(true)
 const saving = ref(false)
 const error = ref(null)
+const categories = ref([])
 
 onMounted(async () => {
   console.log('[EditProduct] route.params.id:', route.params.id)
   try {
-    const product = await getProductById(route.params.id)
+    const [product, cats] = await Promise.all([
+      getProductById(route.params.id),
+      getCategories(),
+    ])
     console.log('[EditProduct] Loaded product:', product)
+    categories.value = cats
     form.value.title = product.title ?? ''
     form.value.description = product.description ?? ''
     form.value.categoryId = product.category?.id ?? ''
@@ -97,8 +103,13 @@ async function remove() {
           </div>
 
           <div class="field">
-            <label>Kategorie ID</label>
-            <input v-model="form.categoryId" type="number" placeholder="z. B. 1" />
+            <label>Kategorie</label>
+            <select v-model="form.categoryId">
+              <option value="">— Keine Kategorie —</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.nameDe || cat.name }}
+              </option>
+            </select>
           </div>
 
           <div class="form-actions">
@@ -194,7 +205,8 @@ async function remove() {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px;
@@ -207,7 +219,9 @@ async function remove() {
   resize: vertical;
 }
 .field input:focus,
-.field textarea:focus { border-color: rgba(0,221,255,0.5); }
+.field textarea:focus,
+.field select:focus { border-color: rgba(0,221,255,0.5); }
+.field select option { background: #272736; color: white; }
 
 .form-actions {
   display: flex;

@@ -58,10 +58,10 @@ function isActiveCategory(id) {
       </a>
 
       <ul class="nav-links">
-        <li><a href="#what">Was ist CarMeet</a></li>
-        <li><a href="#how">Wie es funktioniert</a></li>
-        <li><a href="#events">Events</a></li>
-        <li><a href="#how-to-manager">Eventmanager</a></li>
+        <li><router-link :to="{ path: '/', hash: '#what' }">Was ist CarMeet</router-link></li>
+        <li><router-link :to="{ path: '/', hash: '#how' }">Wie es funktioniert</router-link></li>
+        <li><router-link :to="{ path: '/', hash: '#events' }">Events</router-link></li>
+        <li><router-link :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager</router-link></li>
         <li><a href="#">Über uns</a></li>
 
         <li class="nav-dropdown" :class="{ open: dropdownOpen }">
@@ -102,10 +102,10 @@ function isActiveCategory(id) {
     </nav>
 
     <div class="burger-open" id="burgerOpen">
-      <a href="#what">Was ist CarMeet</a>
-      <a href="#how">Wie es funktioniert</a>
-      <a href="#events">Events</a>
-      <a href="#how-to-manager">Eventmanager werden</a>
+      <router-link :to="{ path: '/', hash: '#what' }">Was ist CarMeet</router-link>
+      <router-link :to="{ path: '/', hash: '#how' }">Wie es funktioniert</router-link>
+      <router-link :to="{ path: '/', hash: '#events' }">Events</router-link>
+      <router-link :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager werden</router-link>
       <a href="#">Über uns</a>
 
       <div class="mob-categories">

@@ -1,13 +1,26 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createProduct } from '../services/productService.js'
+import { getCategories } from '../services/categoryService.js'
 
 const router = useRouter()
 
 const form = ref({ title: '', description: '', categoryId: '' })
 const loading = ref(false)
 const error = ref(null)
+const categories = ref([])
+const categoriesLoading = ref(true)
+
+onMounted(async () => {
+  try {
+    categories.value = await getCategories()
+  } catch (e) {
+    console.error('[CreateProduct] Kategorien laden fehlgeschlagen:', e)
+  } finally {
+    categoriesLoading.value = false
+  }
+})
 
 async function submit() {
   if (!form.value.title.trim()) {
@@ -62,8 +75,13 @@ async function submit() {
         </div>
 
         <div class="field">
-          <label>Kategorie ID</label>
-          <input v-model="form.categoryId" type="number" placeholder="z. B. 1" />
+          <label>Kategorie</label>
+          <select v-model="form.categoryId" :disabled="categoriesLoading">
+            <option value="">— Keine Kategorie —</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.nameDe || cat.name }}
+            </option>
+          </select>
         </div>
 
         <div class="form-actions">
@@ -151,7 +169,8 @@ async function submit() {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px;
@@ -164,8 +183,17 @@ async function submit() {
   resize: vertical;
 }
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: rgba(0,221,255,0.5);
+}
+.field select option {
+  background: #272736;
+  color: white;
+}
+.field select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .form-actions {
