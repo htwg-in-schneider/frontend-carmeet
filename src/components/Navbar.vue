@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import Button from './Button.vue'
+import UserMenu from './UserMenu.vue'
 import { getCategories } from '../services/categoryService.js'
 
 const router = useRouter()
@@ -53,9 +53,9 @@ function isActiveCategory(id) {
     <input type="checkbox" id="navBurger" class="nav-burger" />
 
     <nav id="navbar">
-      <a href="#" class="nav-logo">
+      <router-link to="/" class="nav-logo">
         <img src="../assets/picture/CarMeet_Logo.png" alt="CarMeet Logo" class="nav-logo-image">
-      </a>
+      </router-link>
 
       <ul class="nav-links">
         <li><router-link :to="{ path: '/', hash: '#what' }">Was ist CarMeet</router-link></li>
@@ -92,8 +92,7 @@ function isActiveCategory(id) {
       </ul>
 
       <div class="nav-actions">
-        <Button href="#" variant="secondary" size="sm">Anmelden</Button>
-        <Button href="#" variant="accent" size="sm">Registrieren</Button>
+        <UserMenu />
       </div>
 
       <label for="navBurger" class="burger" aria-label="Menü öffnen">
@@ -129,8 +128,7 @@ function isActiveCategory(id) {
       </div>
 
       <div class="mob-btns">
-        <Button href="#" variant="secondary" size="sm">Anmelden</Button>
-        <Button href="#" variant="accent" size="sm">Registrieren</Button>
+        <UserMenu />
       </div>
     </div>
   </div>

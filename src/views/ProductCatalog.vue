@@ -4,8 +4,10 @@ import { useRoute } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import ProductFilter from '../components/ProductFilter.vue'
 import { getProducts } from '../services/productService.js'
+import { useUserStore } from '../stores/userStore.js'
 
 const route = useRoute()
+const userStore = useUserStore()
 
 const products = ref([])
 const loading = ref(true)
@@ -44,7 +46,7 @@ watch(
         <div class="catalog-label">Backend API</div>
         <h1 class="catalog-title">Autokatalog</h1>
       </div>
-      <router-link to="/products/create" class="btn-create">+ Neues Auto hinzufügen</router-link>
+      <router-link v-if="userStore.isAdmin" to="/products/create" class="btn-create">+ Neues Auto hinzufügen</router-link>
     </div>
 
     <ProductFilter />
@@ -56,7 +58,12 @@ watch(
     </div>
 
     <div v-else class="product-grid">
-      <ProductCard v-for="product in products" :key="product.id" :product="product" />
+      <ProductCard
+        v-for="product in products"
+        :key="product.id"
+        :product="product"
+        @deleted="id => products = products.filter(p => p.id !== id)"
+      />
     </div>
   </div>
 </template>

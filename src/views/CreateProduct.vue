@@ -1,14 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth0 } from '@auth0/auth0-vue'
 import { createProduct } from '../services/productService.js'
 import { getCategories } from '../services/categoryService.js'
 
 const router = useRouter()
+const { getAccessTokenSilently } = useAuth0()
 
 const form = ref({ title: '', description: '', categoryId: '' })
 const loading = ref(false)
 const error = ref(null)
+const successMsg = ref(null)
 const categories = ref([])
 const categoriesLoading = ref(true)
 
@@ -30,20 +33,20 @@ async function submit() {
 
   loading.value = true
   error.value = null
+  successMsg.value = null
 
   const payload = {
     title: form.value.title,
     description: form.value.description,
     category: form.value.categoryId ? { id: Number(form.value.categoryId) } : undefined,
   }
-  console.log('[CreateProduct] Sending payload:', JSON.stringify(payload))
 
   try {
-    await createProduct(payload)
-    alert('Produkt erfolgreich erstellt!')
-    router.push('/products')
+    const token = await getAccessTokenSilently()
+    await createProduct(payload, token)
+    successMsg.value = 'Fahrzeug erfolgreich erstellt.'
+    setTimeout(() => router.push('/products'), 1400)
   } catch (e) {
-    console.error('[CreateProduct] Fehler:', e)
     error.value = `Fehler beim Erstellen: ${e.message}`
   } finally {
     loading.value = false
@@ -57,11 +60,12 @@ async function submit() {
 
     <div class="form-card">
       <div class="form-header">
-        <div class="form-label">Backend API</div>
-        <h1 class="form-title">Neues Produkt</h1>
+        <div class="form-label">Admin</div>
+        <h1 class="form-title">Neues Fahrzeug</h1>
       </div>
 
       <div v-if="error" class="alert-error">{{ error }}</div>
+      <div v-if="successMsg" class="alert-success">{{ successMsg }}</div>
 
       <form @submit.prevent="submit" class="form">
         <div class="field">
@@ -86,7 +90,7 @@ async function submit() {
 
         <div class="form-actions">
           <router-link to="/products" class="btn-cancel">Abbrechen</router-link>
-          <button type="submit" class="btn-submit" :disabled="loading">
+          <button type="submit" class="btn-submit" :disabled="loading || !!successMsg">
             {{ loading ? 'Wird gespeichert…' : 'Erstellen' }}
           </button>
         </div>
@@ -126,7 +130,7 @@ async function submit() {
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #00DDFF;
+  color: #FA0BDB;
   margin-bottom: 10px;
 }
 
@@ -134,17 +138,30 @@ async function submit() {
   font-family: 'Orbitron', sans-serif;
   font-size: clamp(22px, 3vw, 32px);
   font-weight: 700;
-  color: #FA0BDB;
+  color: white;
   margin: 0 0 32px;
 }
 
 .alert-error {
-  background: rgba(250,11,219,0.08);
-  border: 1px solid rgba(250,11,219,0.3);
+  background: rgba(255,60,60,0.08);
+  border: 1px solid rgba(255,60,60,0.25);
   border-radius: 10px;
   padding: 12px 16px;
-  color: #FA0BDB;
+  color: #ff7070;
   font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.alert-success {
+  background: rgba(0,221,150,0.08);
+  border: 1px solid rgba(0,221,150,0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #00dd96;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   margin-bottom: 24px;
 }
 
@@ -184,17 +201,9 @@ async function submit() {
 }
 .field input:focus,
 .field textarea:focus,
-.field select:focus {
-  border-color: rgba(0,221,255,0.5);
-}
-.field select option {
-  background: #272736;
-  color: white;
-}
-.field select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.field select:focus { border-color: rgba(0,221,255,0.5); }
+.field select option { background: #272736; color: white; }
+.field select:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .form-actions {
   display: flex;

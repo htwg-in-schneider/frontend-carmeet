@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authGuard } from '@auth0/auth0-vue'
+import { adminGuard } from './guards.js'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
@@ -16,6 +18,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+    {
+      path: '/callback',
+      name: 'callback',
+      component: () => import('../views/CallbackView.vue'),
     },
     {
       path: '/event/:id',
@@ -46,6 +53,69 @@ const router = createRouter({
       path: '/products/:id',
       name: 'product-detail',
       component: () => import('../views/ProductDetail.vue'),
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+      beforeEnter: authGuard,
+    },
+
+    // ── Admin area ──────────────────────────────────────────────
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/AdminUsersView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/admin/categories',
+      name: 'admin-categories',
+      component: () => import('../views/AdminCategoriesView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/admin/events',
+      name: 'admin-events',
+      component: () => import('../views/AdminEventsView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
+
+    // ── User area ────────────────────────────────────────────────
+    {
+      path: '/user',
+      redirect: '/user/events',
+    },
+    {
+      path: '/user/events',
+      name: 'user-events',
+      component: () => import('../views/UserEventsView.vue'),
+      beforeEnter: authGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/user/vehicles',
+      name: 'user-vehicles',
+      component: () => import('../views/UserVehiclesView.vue'),
+      beforeEnter: authGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/user/profile',
+      name: 'user-profile',
+      component: () => import('../views/ProfileView.vue'),
+      beforeEnter: authGuard,
+      meta: { hideGlobalNav: true },
     },
   ],
 })
