@@ -19,7 +19,7 @@ function handleLogout() {
 watch(
   () => userStore.profile?.role,
   (newRole, oldRole) => {
-    if (oldRole === 'ADMIN' && newRole === 'USER') {
+    if (oldRole === 'ADMIN' && newRole && newRole !== 'ADMIN') {
       router.replace('/user/events')
     }
   }

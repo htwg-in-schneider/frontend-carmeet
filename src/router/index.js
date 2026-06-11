@@ -127,6 +127,13 @@ const router = createRouter({
       beforeEnter: authGuard,
       meta: { hideGlobalNav: true },
     },
+    {
+      path: '/user/become-event-manager',
+      name: 'become-event-manager',
+      component: () => import('../views/BecomeEventManagerView.vue'),
+      beforeEnter: authGuard,
+      meta: { hideGlobalNav: true },
+    },
   ],
 })
 

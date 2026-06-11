@@ -11,6 +11,7 @@ export const useUserStore = defineStore('user', () => {
   const error = ref(null)
 
   const isAdmin = computed(() => profile.value?.role === 'ADMIN')
+  const isEventManager = computed(() => profile.value?.eventManager === true)
 
   async function fetchProfile() {
     if (!isAuthenticated.value) return
@@ -46,5 +47,5 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
   }
 
-  return { profile, loading, error, isAdmin, fetchProfile, saveProfile, clear }
+  return { profile, loading, error, isAdmin, isEventManager, fetchProfile, saveProfile, clear }
 })

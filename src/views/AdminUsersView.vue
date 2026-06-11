@@ -30,13 +30,17 @@ async function fetchUsers() {
   }
 }
 
+function effectiveRole(user) {
+  return user.eventManager ? 'EVENTMANAGER' : (user.role ?? 'USER')
+}
+
 function startEdit(user) {
   editingUser.value = user
   editForm.value = {
     firstName: user.firstName ?? '',
     lastName: user.lastName ?? '',
     email: user.email ?? '',
-    role: user.role ?? 'USER',
+    role: effectiveRole(user),
   }
   saveError.value = null
 }
@@ -56,11 +60,11 @@ async function submitEdit() {
       lastName: editForm.value.lastName,
       email: editForm.value.email,
     })
-    if (editForm.value.role !== editingUser.value.role) {
+    if (editForm.value.role !== effectiveRole(editingUser.value)) {
       updated = await updateUserRole(token, editingUser.value.id, editForm.value.role)
     }
     const idx = users.value.findIndex(u => u.id === (updated?.id ?? editingUser.value.id))
-    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated, role: editForm.value.role }
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated }
     editingUser.value = null
   } catch (e) {
     saveError.value = e.message
@@ -116,8 +120,8 @@ function displayName(user) {
                 </td>
                 <td class="col-email">{{ user.email || '—' }}</td>
                 <td>
-                  <span class="role-badge" :class="user.role === 'ADMIN' ? 'badge-admin' : 'badge-user'">
-                    {{ user.role }}
+                  <span class="role-badge" :class="user.role === 'ADMIN' ? 'badge-admin' : user.eventManager ? 'badge-em' : 'badge-user'">
+                    {{ effectiveRole(user) }}
                   </span>
                 </td>
                 <td>
@@ -157,6 +161,7 @@ function displayName(user) {
               <select v-model="editForm.role">
                 <option value="USER">User</option>
                 <option value="ADMIN">Admin</option>
+                <option value="EVENTMANAGER">Eventmanager</option>
               </select>
             </div>
             <div class="modal-actions">
@@ -303,6 +308,11 @@ function displayName(user) {
   background: rgba(0,221,255,0.08);
   border: 1px solid rgba(0,221,255,0.25);
   color: #00DDFF;
+}
+.badge-em {
+  background: rgba(153,85,255,0.1);
+  border: 1px solid rgba(153,85,255,0.35);
+  color: #9955FF;
 }
 
 .action-btns {

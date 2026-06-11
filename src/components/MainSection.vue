@@ -2,6 +2,22 @@
 import { steps, events } from '../data.js'
 import EventCard from './EventCard.vue'
 import FeedbackSection from './FeedbackSection.vue'
+import { useRouter } from 'vue-router'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { useUserStore } from '../stores/userStore.js'
+
+const router = useRouter()
+const { isAuthenticated, loginWithRedirect } = useAuth0()
+const userStore = useUserStore()
+
+function handleEventManagerClick() {
+  if (!isAuthenticated.value) {
+    localStorage.setItem('postLoginTarget', '/user/profile')
+    loginWithRedirect()
+    return
+  }
+  router.push('/user/profile')
+}
 </script>
 
 <template>
@@ -122,7 +138,7 @@ import FeedbackSection from './FeedbackSection.vue'
               <div class="eventmanager-box-title">Eventmanager-Abo</div>
               <p class="eventmanager-box-price">19,99€ – einmalige Kosten</p>
               <p class="eventmanager-box-text">Erhalte direkten Zugriff auf das Eventmanager-Dashboard und organisiere deine eigenen Treffen mit flexiblen Optionen.</p>
-              <a href="#" class="btn-upgrade">Jetzt Eventmanager werden</a>
+              <button class="btn-upgrade" @click="handleEventManagerClick">Jetzt Eventmanager werden</button>
             </div>
           </div>
         </div>

@@ -18,7 +18,11 @@ watch(
   async (loggedIn) => {
     if (loggedIn) {
       await userStore.fetchProfile()
-      if (LANDING_PATHS.includes(route.path)) {
+      const pendingTarget = localStorage.getItem('postLoginTarget')
+      if (pendingTarget) {
+        localStorage.removeItem('postLoginTarget')
+        router.push(pendingTarget)
+      } else if (LANDING_PATHS.includes(route.path)) {
         if (userStore.isAdmin) {
           router.push('/admin')
         } else {
