@@ -1,14 +1,20 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { useUserStore } from '../stores/userStore.js'
 import UserMenu from './UserMenu.vue'
 import { getCategories } from '../services/categoryService.js'
 
 const router = useRouter()
 const route = useRoute()
 
+const { loginWithRedirect, logout, isAuthenticated, isLoading, user } = useAuth0()
+const userStore = useUserStore()
+
 const categories = ref([])
 const dropdownOpen = ref(false)
+const mobCatsOpen = ref(false)
 
 onMounted(async () => {
   try {
@@ -35,16 +41,27 @@ function toggleDropdown() {
 
 function goToAll() {
   dropdownOpen.value = false
+  mobCatsOpen.value = false
   router.push({ path: '/products', query: {} })
 }
 
 function goToCategory(id) {
   dropdownOpen.value = false
+  mobCatsOpen.value = false
   router.push({ path: '/products', query: { category: id } })
 }
 
 function isActiveCategory(id) {
   return String(route.query.category) === String(id)
+}
+
+function handleMobLogin() {
+  loginWithRedirect()
+}
+
+function handleMobLogout() {
+  userStore.clear()
+  logout({ logoutParams: { returnTo: window.location.origin } })
 }
 </script>
 
@@ -62,7 +79,7 @@ function isActiveCategory(id) {
         <li><router-link :to="{ path: '/', hash: '#how' }">Wie es funktioniert</router-link></li>
         <li><router-link :to="{ path: '/', hash: '#events' }">Events</router-link></li>
         <li><router-link :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager</router-link></li>
-        <li><a href="#">Über uns</a></li>
+        <li><router-link to="/impressum">Über uns</router-link></li>
 
         <li class="nav-dropdown" :class="{ open: dropdownOpen }">
           <button class="dropdown-toggle" @click.stop="toggleDropdown">
@@ -105,30 +122,44 @@ function isActiveCategory(id) {
       <router-link :to="{ path: '/', hash: '#how' }">Wie es funktioniert</router-link>
       <router-link :to="{ path: '/', hash: '#events' }">Events</router-link>
       <router-link :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager werden</router-link>
-      <a href="#">Über uns</a>
+      <router-link to="/impressum">Über uns</router-link>
 
       <div class="mob-categories">
-        <div class="mob-cat-label">Angemeldete Autos</div>
-        <button
-          class="mob-cat-item"
-          :class="{ active: !route.query.category }"
-          @click="goToAll"
-        >
-          Alle Autos
+        <button class="mob-cat-toggle" @click="mobCatsOpen = !mobCatsOpen">
+          Angemeldete Autos
+          <span class="mob-cat-arrow" :class="{ open: mobCatsOpen }">▾</span>
         </button>
-        <button
-          v-for="cat in categories"
-          :key="cat.id"
-          class="mob-cat-item"
-          :class="{ active: isActiveCategory(cat.id) }"
-          @click="goToCategory(cat.id)"
-        >
-          {{ cat.nameDe || cat.name }}
-        </button>
+        <div v-show="mobCatsOpen" class="mob-cat-items">
+          <button
+            class="mob-cat-item"
+            :class="{ active: !route.query.category }"
+            @click="goToAll"
+          >
+            Alle Autos
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            class="mob-cat-item"
+            :class="{ active: isActiveCategory(cat.id) }"
+            @click="goToCategory(cat.id)"
+          >
+            {{ cat.nameDe || cat.name }}
+          </button>
+        </div>
       </div>
 
-      <div class="mob-btns">
-        <UserMenu />
+      <div v-if="!isLoading" class="mob-user">
+        <template v-if="!isAuthenticated">
+          <button class="mob-login-btn" @click="handleMobLogin">Anmelden</button>
+        </template>
+        <template v-else>
+          <div class="mob-user-name">{{ user?.name }}</div>
+          <router-link v-if="userStore.isAdmin" class="mob-user-link" to="/admin">Admin-Bereich</router-link>
+          <router-link v-else class="mob-user-link" to="/user/events">Mein Bereich</router-link>
+          <router-link class="mob-user-link" to="/user/profile">Profil</router-link>
+          <button class="mob-logout-btn" @click="handleMobLogout">Abmelden</button>
+        </template>
       </div>
     </div>
   </div>
@@ -290,15 +321,16 @@ nav {
   display: none;
   position: fixed;
   top: 70px; left: 0; right: 0;
+  bottom: 0;
   background: #272736;
   z-index: 999;
   flex-direction: column;
   padding: 24px 5% 32px;
   gap: 0;
   border-bottom: 1px solid rgba(0,221,255,0.12);
+  overflow-y: auto;
 }
-.burger-open a,
-.burger-open .mob-cat-item {
+.burger-open a {
   color: white;
   text-decoration: none;
   font-family: 'Orbitron', sans-serif;
@@ -310,39 +342,139 @@ nav {
   display: block;
   width: 100%;
 }
-.burger-open .mob-btns {
-  display: flex;
-  gap: 12.8px;
-  margin-top: 16px;
-}
-.burger-open .mob-btns a {
-  border: none;
-  padding: 11.2px 19.2px;
-  border-radius: 30px;
-}
 
+/* ─── MOBILE CATEGORIES ACCORDION ─── */
 .mob-categories {
   display: flex;
   flex-direction: column;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.mob-cat-label {
+
+.mob-cat-toggle {
+  background: none;
+  border: none;
+  color: white;
   font-family: 'Orbitron', sans-serif;
-  font-size: 8px;
-  letter-spacing: 1.5px;
+  font-size: 12px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #00DDFF;
-  padding: 14px 0 6px;
+  padding: 11.2px 0;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.mob-cat-toggle:hover {
+  color: #00DDFF;
+}
+
+.mob-cat-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+  color: #00DDFF;
+}
+.mob-cat-arrow.open {
+  transform: rotate(180deg);
+}
+
+.mob-cat-items {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+}
+
 .mob-cat-item {
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.75);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
   text-align: left;
+  padding: 10px 0 10px 14px;
   cursor: pointer;
-  padding-left: 12px !important;
+  width: 100%;
+}
+.mob-cat-item:hover {
+  color: #00DDFF;
 }
 .mob-cat-item.active {
-  color: #00DDFF !important;
+  color: #00DDFF;
+}
+
+/* ─── MOBILE USER SECTION ─── */
+.mob-user {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  gap: 0;
+}
+
+.mob-user-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #00DDFF;
+  padding: 10px 0 6px;
+}
+
+.mob-user-link {
+  color: white;
+  text-decoration: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 11.2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: block;
+  width: 100%;
+}
+.mob-user-link:hover {
+  color: #00DDFF;
+}
+
+.mob-login-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: none;
+  background: linear-gradient(135deg, #FA0BDB, #9955FF);
+  color: white;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.mob-login-btn:hover {
+  box-shadow: 0 0 24px rgba(153, 85, 255, 0.5);
+}
+
+.mob-logout-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 11.2px 0;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.mob-logout-btn:hover {
+  color: #FA0BDB;
 }
 
 @media (max-width: 1500px) {

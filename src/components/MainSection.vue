@@ -1,6 +1,7 @@
 <script setup>
 import { steps, events } from '../data.js'
 import EventCard from './EventCard.vue'
+import FeedbackSection from './FeedbackSection.vue'
 </script>
 
 <template>
@@ -127,6 +128,10 @@ import EventCard from './EventCard.vue'
         </div>
       </div>
     </section>
+
+    <div class="divider"></div>
+
+    <FeedbackSection />
 
   </div>
 </template>

@@ -1,10 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useUserStore } from '../stores/userStore.js'
+import { useRouter } from 'vue-router'
 
 const { logout, user } = useAuth0()
 const userStore = useUserStore()
+const router = useRouter()
 
 const mobileOpen = ref(false)
 
@@ -12,6 +14,23 @@ function handleLogout() {
   userStore.clear()
   logout({ logoutParams: { returnTo: window.location.origin } })
 }
+
+// Redirect immediately when role is downgraded to USER
+watch(
+  () => userStore.profile?.role,
+  (newRole, oldRole) => {
+    if (oldRole === 'ADMIN' && newRole === 'USER') {
+      router.replace('/user/events')
+    }
+  }
+)
+
+// Poll profile every 10s to detect role changes
+let pollTimer = null
+onMounted(() => {
+  pollTimer = setInterval(() => userStore.fetchProfile(), 1000)
+})
+onUnmounted(() => clearInterval(pollTimer))
 </script>
 
 <template>
@@ -43,6 +62,11 @@ function handleLogout() {
             Nutzer
           </router-link>
         </li>
+        <li>
+          <router-link to="/user/profile" :class="{ active: $route.path === '/user/profile' }">
+            Profil
+          </router-link>
+        </li>
       </ul>
 
       <div class="nav-end">
@@ -59,6 +83,7 @@ function handleLogout() {
       <router-link to="/admin/events" @click="mobileOpen = false">Events</router-link>
       <router-link to="/admin/categories" @click="mobileOpen = false">Fahrzeugkategorien</router-link>
       <router-link to="/admin/users" @click="mobileOpen = false">Nutzer</router-link>
+      <router-link to="/user/profile" @click="mobileOpen = false">Profil</router-link>
       <button class="mobile-logout" @click="handleLogout">Abmelden</button>
     </div>
   </nav>
@@ -69,8 +94,7 @@ function handleLogout() {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: #12122a;
-  border-bottom: 1px solid rgba(250, 11, 219, 0.2);
+  background: #272736;
 }
 
 .nav-inner {
@@ -78,7 +102,7 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 0 5%;
-  height: 64px;
+  height: 80px;
 }
 
 .nav-logo {
@@ -89,7 +113,7 @@ function handleLogout() {
 }
 
 .logo-img {
-  max-height: 22px;
+  max-height: 25px;
   width: auto;
 }
 
@@ -114,21 +138,19 @@ function handleLogout() {
 }
 
 .nav-links a {
-  color: rgba(255, 255, 255, 0.6);
+  color: white;
   text-decoration: none;
   font-family: 'Orbitron', sans-serif;
-  font-size: 9.5px;
+  font-size: 11.2px;
   font-weight: 500;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
+  padding: 8px 12.8px;
+  transition: color 0.5s;
 }
 .nav-links a:hover,
 .nav-links a.active {
-  color: #FA0BDB;
-  background: rgba(250, 11, 219, 0.08);
+  color: #00DDFF;
 }
 
 .nav-end {
@@ -187,7 +209,7 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   padding: 12px 5% 20px;
-  background: #12122a;
+  background: #272736;
   border-top: 1px solid rgba(250, 11, 219, 0.1);
   gap: 2px;
 }

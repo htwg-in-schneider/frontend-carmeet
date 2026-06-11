@@ -1,10 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useUserStore } from '../stores/userStore.js'
+import { useRouter } from 'vue-router'
 
 const { logout, user } = useAuth0()
 const userStore = useUserStore()
+const router = useRouter()
 
 const mobileOpen = ref(false)
 
@@ -12,6 +14,23 @@ function handleLogout() {
   userStore.clear()
   logout({ logoutParams: { returnTo: window.location.origin } })
 }
+
+// Redirect immediately when role is upgraded to ADMIN
+watch(
+  () => userStore.profile?.role,
+  (newRole, oldRole) => {
+    if (oldRole === 'USER' && newRole === 'ADMIN') {
+      router.replace('/admin')
+    }
+  }
+)
+
+// Poll profile every 10s to detect role changes
+let pollTimer = null
+onMounted(() => {
+  pollTimer = setInterval(() => userStore.fetchProfile(), 1000)
+})
+onUnmounted(() => clearInterval(pollTimer))
 </script>
 
 <template>
@@ -62,8 +81,7 @@ function handleLogout() {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: #0e0e22;
-  border-bottom: 1px solid rgba(0, 221, 255, 0.15);
+  background: #272736;
 }
 
 .nav-inner {
@@ -71,7 +89,7 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 0 5%;
-  height: 64px;
+  height: 80px;
 }
 
 .nav-logo {
@@ -81,7 +99,7 @@ function handleLogout() {
 }
 
 .logo-img {
-  max-height: 22px;
+  max-height: 25px;
   width: auto;
 }
 
@@ -94,21 +112,19 @@ function handleLogout() {
 }
 
 .nav-links a {
-  color: rgba(255, 255, 255, 0.6);
+  color: white;
   text-decoration: none;
   font-family: 'Orbitron', sans-serif;
-  font-size: 9.5px;
+  font-size: 11.2px;
   font-weight: 500;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
+  padding: 8px 12.8px;
+  transition: color 0.5s;
 }
 .nav-links a:hover,
 .nav-links a.active {
   color: #00DDFF;
-  background: rgba(0, 221, 255, 0.07);
 }
 
 .nav-end {
@@ -167,7 +183,7 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   padding: 12px 5% 20px;
-  background: #0e0e22;
+  background: #272736;
   border-top: 1px solid rgba(0, 221, 255, 0.08);
   gap: 2px;
 }

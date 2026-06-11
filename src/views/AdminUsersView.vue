@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import AdminNavbar from '../components/AdminNavbar.vue'
-import { getAllUsers, updateUserRole, deleteUser, updateUser, setUserLocked } from '../services/adminService.js'
+import { getAllUsers, updateUserRole, updateUser } from '../services/adminService.js'
 
 const { getAccessTokenSilently } = useAuth0()
 
@@ -11,11 +11,9 @@ const loading = ref(false)
 const error = ref(null)
 
 const editingUser = ref(null)
-const editForm = ref({ firstName: '', lastName: '', email: '' })
+const editForm = ref({ firstName: '', lastName: '', email: '', role: 'USER' })
 const saving = ref(false)
 const saveError = ref(null)
-
-const confirmDeleteId = ref(null)
 
 onMounted(fetchUsers)
 
@@ -38,6 +36,7 @@ function startEdit(user) {
     firstName: user.firstName ?? '',
     lastName: user.lastName ?? '',
     email: user.email ?? '',
+    role: user.role ?? 'USER',
   }
   saveError.value = null
 }
@@ -52,52 +51,21 @@ async function submitEdit() {
   saveError.value = null
   try {
     const token = await getAccessTokenSilently()
-    const updated = await updateUser(token, editingUser.value.id, {
+    let updated = await updateUser(token, editingUser.value.id, {
       firstName: editForm.value.firstName,
       lastName: editForm.value.lastName,
       email: editForm.value.email,
     })
-    const idx = users.value.findIndex(u => u.id === updated.id)
-    if (idx !== -1) users.value[idx] = updated
+    if (editForm.value.role !== editingUser.value.role) {
+      updated = await updateUserRole(token, editingUser.value.id, editForm.value.role)
+    }
+    const idx = users.value.findIndex(u => u.id === (updated?.id ?? editingUser.value.id))
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated, role: editForm.value.role }
     editingUser.value = null
   } catch (e) {
     saveError.value = e.message
   } finally {
     saving.value = false
-  }
-}
-
-async function changeRole(user, newRole) {
-  try {
-    const token = await getAccessTokenSilently()
-    const updated = await updateUserRole(token, user.id, newRole)
-    const idx = users.value.findIndex(u => u.id === updated.id)
-    if (idx !== -1) users.value[idx] = updated
-  } catch (e) {
-    error.value = e.message
-  }
-}
-
-async function toggleLock(user) {
-  try {
-    const token = await getAccessTokenSilently()
-    const updated = await setUserLocked(token, user.id, !user.locked)
-    const idx = users.value.findIndex(u => u.id === updated.id)
-    if (idx !== -1) users.value[idx] = updated
-  } catch (e) {
-    error.value = e.message
-  }
-}
-
-async function confirmDelete(id) {
-  try {
-    const token = await getAccessTokenSilently()
-    await deleteUser(token, id)
-    users.value = users.value.filter(u => u.id !== id)
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    confirmDeleteId.value = null
   }
 }
 
@@ -155,25 +123,6 @@ function displayName(user) {
                 <td>
                   <div class="action-btns">
                     <button class="btn-sm btn-edit" @click="startEdit(user)">Bearbeiten</button>
-                    <button
-                      class="btn-sm btn-role"
-                      @click="changeRole(user, user.role === 'ADMIN' ? 'USER' : 'ADMIN')"
-                    >
-                      → {{ user.role === 'ADMIN' ? 'User' : 'Admin' }}
-                    </button>
-                    <button
-                      class="btn-sm"
-                      :class="user.locked ? 'btn-unlock' : 'btn-lock'"
-                      @click="toggleLock(user)"
-                    >
-                      {{ user.locked ? 'Entsperren' : 'Sperren' }}
-                    </button>
-                    <button
-                      class="btn-sm btn-delete"
-                      @click="confirmDeleteId = user.id"
-                    >
-                      Löschen
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -203,6 +152,13 @@ function displayName(user) {
               <label>E-Mail</label>
               <input v-model="editForm.email" type="email" placeholder="E-Mail-Adresse" />
             </div>
+            <div class="field">
+              <label>Rolle</label>
+              <select v-model="editForm.role">
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
             <div class="modal-actions">
               <button type="button" class="btn-cancel" @click="cancelEdit">Abbrechen</button>
               <button type="submit" class="btn-save" :disabled="saving">
@@ -213,30 +169,20 @@ function displayName(user) {
         </div>
       </div>
 
-      <!-- Delete Confirm Modal -->
-      <div v-if="confirmDeleteId" class="modal-backdrop" @click.self="confirmDeleteId = null">
-        <div class="modal modal-sm">
-          <div class="modal-header">
-            <div class="modal-title">Nutzer löschen?</div>
-          </div>
-          <p class="modal-body-text">Diese Aktion kann nicht rückgängig gemacht werden.</p>
-          <div class="modal-actions">
-            <button class="btn-cancel" @click="confirmDeleteId = null">Abbrechen</button>
-            <button class="btn-danger" @click="confirmDelete(confirmDeleteId)">Endgültig löschen</button>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-.admin-layout { min-height: 100vh; background: #0b0b1e; }
+.admin-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .admin-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
 .state-msg {
@@ -245,6 +191,7 @@ function displayName(user) {
   color: #8b8fa8;
 }
 
+
 .page-header { margin-bottom: 32px; }
 
 .page-label {
@@ -252,7 +199,7 @@ function displayName(user) {
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #FA0BDB;
+  color: #00DDFF;
   margin-bottom: 10px;
 }
 
@@ -260,7 +207,7 @@ function displayName(user) {
   font-family: 'Orbitron', sans-serif;
   font-size: clamp(22px, 3.5vw, 36px);
   font-weight: 700;
-  color: white;
+  color: #FA0BDB;
   margin: 0 0 8px;
 }
 
@@ -425,7 +372,7 @@ function displayName(user) {
 }
 
 .modal {
-  background: #12122a;
+  background: #1e1e2e;
   border: 1px solid rgba(0,221,255,0.2);
   border-radius: 20px;
   padding: 32px;
@@ -480,7 +427,8 @@ function displayName(user) {
   text-transform: uppercase;
   color: rgba(255,255,255,0.4);
 }
-.field input {
+.field input,
+.field select {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px;
@@ -491,7 +439,9 @@ function displayName(user) {
   outline: none;
   transition: border-color 0.2s;
 }
-.field input:focus { border-color: rgba(0,221,255,0.5); }
+.field input:focus,
+.field select:focus { border-color: rgba(0,221,255,0.5); }
+.field select option { background: #272736; }
 
 .modal-actions {
   display: flex;

@@ -1,5 +1,8 @@
 <script setup>
 import FooterLink from './FooterLink.vue'
+import { useAuth0 } from '@auth0/auth0-vue'
+
+const { loginWithRedirect } = useAuth0()
 </script>
 
 <template>
@@ -14,16 +17,16 @@ import FooterLink from './FooterLink.vue'
         </p>
 
         <div class="social-links">
-          <a href="#" class="social-link" title="Instagram" aria-label="Instagram">
+          <a href="https://www.instagram.com/fastlife_carmeets/" target="_blank" rel="noopener noreferrer" class="social-link" title="Instagram" aria-label="Instagram">
             <img src="../assets/picture/insta-icon.png" alt="Instagram Icon" class="social-icon" />
           </a>
-          <a href="#" class="social-link" title="Twitter / X" aria-label="Twitter">
+          <a href="https://x.com/fastlife_carmeets" target="_blank" rel="noopener noreferrer" class="social-link" title="Twitter / X" aria-label="Twitter">
             <img src="../assets/picture/x-icon.jpg" alt="X Icon" class="social-icon" />
           </a>
-          <a href="#" class="social-link" title="Facebook" aria-label="Facebook">
+          <a href="https://www.facebook.com/jpperformance" target="_blank" rel="noopener noreferrer" class="social-link" title="Facebook" aria-label="Facebook">
             <img src="../assets/picture/Facebook-icon.png" alt="Facebook Icon" class="social-icon" />
           </a>
-          <a href="#" class="social-link" title="YouTube" aria-label="YouTube">
+          <a href="https://www.youtube.com/@jpperformance" target="_blank" rel="noopener noreferrer" class="social-link" title="YouTube" aria-label="YouTube">
             <img src="../assets/picture/Yt-icon.png" alt="YouTube Icon" class="social-icon" />
           </a>
         </div>
@@ -42,8 +45,8 @@ import FooterLink from './FooterLink.vue'
       <div class="footer-col">
         <h4>Account</h4>
         <ul>
-          <li><FooterLink href="#">Registrieren</FooterLink></li>
-          <li><FooterLink href="#">Anmelden</FooterLink></li>
+          <li><FooterLink href="#" @click.prevent="loginWithRedirect()">Registrieren</FooterLink></li>
+          <li><FooterLink href="#" @click.prevent="loginWithRedirect()">Anmelden</FooterLink></li>
           <li><FooterLink :to="{ path: '/', hash: '#how-to-manager' }">Eventmanager</FooterLink></li>
         </ul>
       </div>
@@ -51,8 +54,9 @@ import FooterLink from './FooterLink.vue'
       <div class="footer-col">
         <h4>Unternehmen</h4>
         <ul>
-          <li><FooterLink href="#">Über uns</FooterLink></li>
-          <li><FooterLink href="#">Impressum</FooterLink></li>
+          <li><FooterLink :to="{ path: '/', hash: '#feedback' }">Feedback</FooterLink></li>
+          <li><FooterLink :to="{ path: '/impressum' }">Impressum</FooterLink></li>
+          <li><FooterLink :to="{ path: '/datenschutz' }">Datenschutz</FooterLink></li>
         </ul>
       </div>
 

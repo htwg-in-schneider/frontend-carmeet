@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import UserNavbar from '../components/UserNavbar.vue'
 import { getMyProducts, createProduct, updateProduct, deleteProduct } from '../services/productService.js'
 import { getCategories } from '../services/categoryService.js'
 
-const { getAccessTokenSilently } = useAuth0()
+const { getAccessTokenSilently, user } = useAuth0()
 
 const vehicles = ref([])
 const categories = ref([])
@@ -41,6 +41,12 @@ async function loadMyVehicles() {
   const token = await getAccessTokenSilently()
   vehicles.value = await getMyProducts(token)
 }
+
+watch(() => user.value?.sub, (newSub, oldSub) => {
+  if (newSub && oldSub && newSub !== oldSub) {
+    loadMyVehicles()
+  }
+})
 
 function openCreateForm() {
   createForm.value = { title: '', description: '', category: null }
@@ -252,15 +258,19 @@ async function confirmDelete(id) {
 </template>
 
 <style scoped>
-.user-layout { min-height: 100vh; background: #080818; }
+.user-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .user-main {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
 .state-msg { text-align: center; padding: 60px 0; color: #8b8fa8; }
+
 
 .page-header { margin-bottom: 32px; }
 .page-label {
@@ -356,7 +366,7 @@ async function confirmDelete(id) {
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal {
-  background: #0e0e22; border: 1px solid rgba(0,221,255,0.2);
+  background: #1e1e2e; border: 1px solid rgba(0,221,255,0.2);
   border-radius: 20px; padding: 32px; width: 100%; max-width: 460px;
 }
 .modal-sm { max-width: 360px; }
@@ -394,7 +404,7 @@ async function confirmDelete(id) {
 .field input:focus,
 .field textarea:focus,
 .field select:focus { border-color: rgba(0,221,255,0.5); }
-.field select option { background: #1a1a30; }
+.field select option { background: #272736; }
 
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 .btn-cancel {

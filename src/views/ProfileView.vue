@@ -2,20 +2,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useUserStore } from '../stores/userStore.js'
-import { useRoute } from 'vue-router'
 import UserNavbar from '../components/UserNavbar.vue'
+import AdminNavbar from '../components/AdminNavbar.vue'
 
 const { user } = useAuth0()
 const userStore = useUserStore()
-const route = useRoute()
 
-const inUserArea = computed(() => route.meta?.hideGlobalNav === true)
 
 const editing = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
 
-const form = ref({ firstName: '', lastName: '', address: '', phone: '' })
+const form = ref({ firstName: '', lastName: '', birthDate: '' })
 
 const profile = computed(() => userStore.profile)
 
@@ -30,9 +28,14 @@ function fillForm() {
   if (profile.value) {
     form.value.firstName = profile.value.firstName ?? ''
     form.value.lastName = profile.value.lastName ?? ''
-    form.value.address = profile.value.address ?? ''
-    form.value.phone = profile.value.phone ?? ''
+    form.value.birthDate = profile.value.birthDate ?? ''
   }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const [y, m, d] = dateStr.split('-')
+  return `${d}.${m}.${y}`
 }
 
 function startEdit() {
@@ -54,8 +57,7 @@ async function submitEdit() {
     await userStore.saveProfile({
       firstName: form.value.firstName,
       lastName: form.value.lastName,
-      address: form.value.address,
-      phone: form.value.phone,
+      birthDate: form.value.birthDate || null,
     })
     editing.value = false
     saveSuccess.value = true
@@ -66,11 +68,15 @@ async function submitEdit() {
 </script>
 
 <template>
-  <div :class="inUserArea ? 'user-layout' : ''">
-    <UserNavbar v-if="inUserArea" />
+  <div class="user-layout">
+    <AdminNavbar v-if="userStore.isAdmin" />
+    <UserNavbar v-else />
 
   <div class="profile-wrapper">
-    <router-link :to="inUserArea ? '/user' : '/'" class="back-link">← Zurück</router-link>
+    <div class="page-header">
+      <div class="page-label">{{ userStore.isAdmin ? 'Admin' : 'Mein Bereich' }}</div>
+      <h1 class="page-title">Profil</h1>
+    </div>
 
     <div v-if="userStore.loading && !profile" class="state-msg">Profil wird geladen…</div>
 
@@ -86,7 +92,6 @@ async function submitEdit() {
           <span v-else class="profile-avatar-fallback">{{ user?.name?.[0] ?? '?' }}</span>
 
           <div class="profile-meta">
-            <div class="profile-label">Profil</div>
             <h1 class="profile-name">{{ user?.name }}</h1>
             <div class="profile-email">{{ user?.email }}</div>
             <span class="role-badge" :class="profile?.role === 'ADMIN' ? 'badge-admin' : 'badge-user'">
@@ -100,21 +105,21 @@ async function submitEdit() {
 
         <template v-if="!editing">
           <div class="info-grid">
+            <div class="info-item info-item-full">
+              <div class="info-label">E-Mail</div>
+              <div class="info-value">{{ user?.email || profile?.email || '—' }}</div>
+            </div>
             <div class="info-item">
               <div class="info-label">Vorname</div>
               <div class="info-value">{{ profile?.firstName || '—' }}</div>
             </div>
             <div class="info-item">
-              <div class="info-label">Nachname</div>
+              <div class="info-label">Name</div>
               <div class="info-value">{{ profile?.lastName || '—' }}</div>
             </div>
-            <div class="info-item">
-              <div class="info-label">Adresse</div>
-              <div class="info-value">{{ profile?.address || '—' }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Telefon</div>
-              <div class="info-value">{{ profile?.phone || '—' }}</div>
+            <div class="info-item info-item-full">
+              <div class="info-label">Geburtsdatum</div>
+              <div class="info-value">{{ formatDate(profile?.birthDate) }}</div>
             </div>
           </div>
 
@@ -130,16 +135,12 @@ async function submitEdit() {
               <input v-model="form.firstName" type="text" placeholder="Max" />
             </div>
             <div class="field">
-              <label>Nachname</label>
+              <label>Name</label>
               <input v-model="form.lastName" type="text" placeholder="Mustermann" />
             </div>
             <div class="field">
-              <label>Adresse</label>
-              <input v-model="form.address" type="text" placeholder="Musterstraße 1, 12345 Stadt" />
-            </div>
-            <div class="field">
-              <label>Telefon</label>
-              <input v-model="form.phone" type="tel" placeholder="+49 123 456789" />
+              <label>Geburtsdatum</label>
+              <input v-model="form.birthDate" type="date" />
             </div>
             <div class="card-actions">
               <button type="button" class="btn-cancel" @click="cancelEdit">Abbrechen</button>
@@ -158,26 +159,38 @@ async function submitEdit() {
 <style scoped>
 .user-layout {
   min-height: 100vh;
-  background: #080818;
+  background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736;
 }
+
 
 .profile-wrapper {
   max-width: 680px;
   margin: 0 auto;
-  padding: 110px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
-.back-link {
-  display: inline-block;
-  color: #00DDFF;
-  text-decoration: none;
+
+.page-header { margin-bottom: 32px; }
+
+.page-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 11px;
-  letter-spacing: 1px;
+  font-size: 9px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 40px;
+  color: #00DDFF;
+  margin-bottom: 10px;
 }
-.back-link:hover { color: #66eaff; }
+
+.page-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 700;
+  color: #FA0BDB;
+  margin: 0;
+}
 
 .state-msg {
   text-align: center;
@@ -279,6 +292,7 @@ async function submitEdit() {
 }
 
 .info-item { display: flex; flex-direction: column; gap: 6px; }
+.info-item-full { grid-column: 1 / -1; }
 .info-label {
   font-family: 'Orbitron', sans-serif;
   font-size: 8px;
@@ -333,6 +347,7 @@ async function submitEdit() {
   transition: border-color 0.2s;
 }
 .field input:focus { border-color: rgba(0,221,255,0.5); }
+.field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.5); cursor: pointer; }
 
 .card-actions {
   display: flex;

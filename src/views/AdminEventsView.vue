@@ -20,13 +20,17 @@ import AdminNavbar from '../components/AdminNavbar.vue'
 </template>
 
 <style scoped>
-.admin-layout { min-height: 100vh; background: #0b0b1e; }
+.admin-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .admin-main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
+
 
 .page-header { margin-bottom: 48px; }
 
@@ -35,7 +39,7 @@ import AdminNavbar from '../components/AdminNavbar.vue'
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #FA0BDB;
+  color: #00DDFF;
   margin-bottom: 12px;
 }
 
@@ -43,7 +47,7 @@ import AdminNavbar from '../components/AdminNavbar.vue'
   font-family: 'Orbitron', sans-serif;
   font-size: clamp(24px, 4vw, 40px);
   font-weight: 700;
-  color: white;
+  color: #FA0BDB;
   margin: 0 0 10px;
 }
 

@@ -1,8 +1,10 @@
 <script setup>
 import Button from './Button.vue'
 import { useBannerStore } from '../stores/banner.js'
+import { useAuth0 } from '@auth0/auth0-vue'
 
 const banner = useBannerStore()
+const { loginWithRedirect } = useAuth0()
 </script>
 
 <template>
@@ -23,7 +25,7 @@ const banner = useBannerStore()
     </p>
 
     <div class="top-btn">
-      <Button href="#" variant="accent">Jetzt kostenlos starten</Button>
+      <Button href="#" variant="accent" @click.prevent="loginWithRedirect()">Jetzt kostenlos starten</Button>
       <Button href="#how" variant="secondary">Wie es funktioniert</Button>
     </div>
 

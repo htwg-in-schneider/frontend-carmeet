@@ -26,7 +26,7 @@ onMounted(async () => {
 
       <template v-else-if="userStore.isAdmin">
         <div class="page-header">
-          <div class="page-label">Eingeschränkter Bereich</div>
+        <div class="page-label">Eingeschränkter Bereich</div>
           <h1 class="page-title">Admin-Dashboard</h1>
           <p class="page-sub">Verwalte Nutzer, Events und Fahrzeugkategorien.</p>
         </div>
@@ -76,13 +76,16 @@ onMounted(async () => {
 <style scoped>
 .admin-layout {
   min-height: 100vh;
-  background: #0b0b1e;
+  background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736;
 }
 
 .admin-main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
 .state-msg {
@@ -91,6 +94,7 @@ onMounted(async () => {
   color: #8b8fa8;
 }
 
+
 .page-header { margin-bottom: 48px; }
 
 .page-label {
@@ -98,7 +102,7 @@ onMounted(async () => {
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #FA0BDB;
+  color: #00DDFF;
   margin-bottom: 12px;
 }
 
@@ -106,7 +110,7 @@ onMounted(async () => {
   font-family: 'Orbitron', sans-serif;
   font-size: clamp(24px, 4vw, 40px);
   font-weight: 700;
-  color: white;
+  color: #FA0BDB;
   margin: 0 0 10px;
 }
 

@@ -20,13 +20,17 @@ import UserNavbar from '../components/UserNavbar.vue'
 </template>
 
 <style scoped>
-.user-layout { min-height: 100vh; background: #080818; }
+.user-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .user-main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
+
 
 .page-header { margin-bottom: 48px; }
 

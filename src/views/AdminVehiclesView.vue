@@ -188,15 +188,19 @@ async function confirmDelete(id) {
 </template>
 
 <style scoped>
-.admin-layout { min-height: 100vh; background: #0b0b1e; }
+.admin-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .admin-main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
 .state-msg { text-align: center; padding: 60px 0; color: #8b8fa8; }
+
 
 .page-header { margin-bottom: 32px; }
 .page-label {
@@ -211,7 +215,7 @@ async function confirmDelete(id) {
   font-family: 'Orbitron', sans-serif;
   font-size: clamp(22px, 3.5vw, 36px);
   font-weight: 700;
-  color: white;
+  color: #FA0BDB;
   margin: 0 0 8px;
 }
 .page-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin: 0; }
@@ -304,7 +308,7 @@ async function confirmDelete(id) {
   padding: 20px;
 }
 .modal {
-  background: #12122a;
+  background: #1e1e2e;
   border: 1px solid rgba(0,221,255,0.2);
   border-radius: 20px;
   padding: 32px;
@@ -361,7 +365,7 @@ async function confirmDelete(id) {
 .field input:focus,
 .field textarea:focus,
 .field select:focus { border-color: rgba(0,221,255,0.5); }
-.field select option { background: #1a1a30; }
+.field select option { background: #272736; }
 
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 

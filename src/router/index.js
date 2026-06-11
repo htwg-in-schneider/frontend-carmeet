@@ -25,6 +25,16 @@ const router = createRouter({
       component: () => import('../views/CallbackView.vue'),
     },
     {
+      path: '/impressum',
+      name: 'impressum',
+      component: () => import('../views/ImpressumView.vue'),
+    },
+    {
+      path: '/datenschutz',
+      name: 'datenschutz',
+      component: () => import('../views/DatenschutzView.vue'),
+    },
+    {
       path: '/event/:id',
       name: 'event-detail',
       component: () => import('../views/EventDetailView.vue'),

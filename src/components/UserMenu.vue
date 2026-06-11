@@ -80,15 +80,18 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
       <ul v-if="dropdownOpen" class="dropdown-menu" @click="closeDropdown">
         <li class="dropdown-username">{{ user?.name }}</li>
         <li class="dropdown-divider"></li>
-        <li v-if="userStore.isAdmin">
-          <router-link class="dropdown-item" to="/admin">Admin-Bereich</router-link>
-        </li>
-        <li v-else>
-          <router-link class="dropdown-item" to="/user/events">Mein Bereich</router-link>
-        </li>
-        <li>
-          <router-link class="dropdown-item" to="/user/profile">Profil</router-link>
-        </li>
+        <template v-if="userStore.isAdmin">
+          <li><router-link class="dropdown-item" to="/admin">Dashboard</router-link></li>
+          <li><router-link class="dropdown-item" to="/admin/events">Events</router-link></li>
+          <li><router-link class="dropdown-item" to="/admin/categories">Fahrzeugkategorien</router-link></li>
+          <li><router-link class="dropdown-item" to="/admin/users">Nutzer</router-link></li>
+          <li><router-link class="dropdown-item" to="/user/profile">Profil</router-link></li>
+        </template>
+        <template v-else>
+          <li><router-link class="dropdown-item" to="/user/events">Events</router-link></li>
+          <li><router-link class="dropdown-item" to="/user/vehicles">Meine Fahrzeuge</router-link></li>
+          <li><router-link class="dropdown-item" to="/user/profile">Profil</router-link></li>
+        </template>
         <li class="dropdown-divider"></li>
         <li>
           <button class="dropdown-item" @click="handleLogout">Abmelden</button>

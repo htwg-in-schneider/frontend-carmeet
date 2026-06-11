@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import AdminNavbar from '../components/AdminNavbar.vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService.js'
+import { getProducts, updateProduct, deleteProduct } from '../services/productService.js'
 
 const { getAccessTokenSilently } = useAuth0()
 
@@ -21,6 +22,9 @@ const saving = ref(false)
 const saveError = ref(null)
 
 const confirmDeleteId = ref(null)
+const conflictCategoryId = ref(null)
+const vehiclesInCategory = ref([])
+const deletingCategory = ref(false)
 
 onMounted(fetchCategories)
 
@@ -95,6 +99,20 @@ async function submitEdit() {
   }
 }
 
+async function handleDeleteClick(id) {
+  try {
+    const products = await getProducts({ category: id })
+    if (products.length > 0) {
+      vehiclesInCategory.value = products
+      conflictCategoryId.value = id
+    } else {
+      confirmDeleteId.value = id
+    }
+  } catch (e) {
+    error.value = e.message
+  }
+}
+
 async function confirmDelete(id) {
   try {
     const token = await getAccessTokenSilently()
@@ -104,6 +122,33 @@ async function confirmDelete(id) {
     error.value = e.message
   } finally {
     confirmDeleteId.value = null
+  }
+}
+
+async function deleteCategoryWithVehicles(action) {
+  deletingCategory.value = true
+  const id = conflictCategoryId.value
+  try {
+    const token = await getAccessTokenSilently()
+    for (const product of vehiclesInCategory.value) {
+      if (action === 'delete') {
+        await deleteProduct(product.id, token)
+      } else {
+        await updateProduct(product.id, {
+          title: product.title,
+          description: product.description,
+          category: null,
+        }, token)
+      }
+    }
+    await deleteCategory(token, id)
+    categories.value = categories.value.filter(c => c.id !== id)
+    conflictCategoryId.value = null
+    vehiclesInCategory.value = []
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    deletingCategory.value = false
   }
 }
 </script>
@@ -146,7 +191,7 @@ async function confirmDelete(id) {
                 <td>
                   <div class="action-btns">
                     <button class="btn-sm btn-edit" @click="startEdit(cat)">Bearbeiten</button>
-                    <button class="btn-sm btn-delete" @click="confirmDeleteId = cat.id">Löschen</button>
+                    <button class="btn-sm btn-delete" @click="handleDeleteClick(cat.id)">Löschen</button>
                   </div>
                 </td>
               </tr>
@@ -209,6 +254,30 @@ async function confirmDelete(id) {
         </div>
       </div>
 
+      <!-- Conflict Modal: category has vehicles -->
+      <div v-if="conflictCategoryId" class="modal-backdrop" @click.self="conflictCategoryId = null; vehiclesInCategory = []">
+        <div class="modal">
+          <div class="modal-header">
+            <div class="modal-title">Kategorie enthält Fahrzeuge</div>
+            <button class="modal-close" @click="conflictCategoryId = null; vehiclesInCategory = []">✕</button>
+          </div>
+          <p class="modal-body-text">
+            <strong style="color: white;">{{ vehiclesInCategory.length }} Fahrzeug{{ vehiclesInCategory.length !== 1 ? 'e' : '' }}</strong>
+            {{ vehiclesInCategory.length !== 1 ? 'sind' : 'ist' }} dieser Kategorie zugewiesen.
+            Was soll mit {{ vehiclesInCategory.length !== 1 ? 'ihnen' : 'ihm' }} passieren?
+          </p>
+          <div class="modal-actions conflict-actions">
+            <button class="btn-cancel" @click="conflictCategoryId = null; vehiclesInCategory = []">Abbrechen</button>
+            <button class="btn-unlink" :disabled="deletingCategory" @click="deleteCategoryWithVehicles('unlink')">
+              {{ deletingCategory ? 'Wird verarbeitet…' : 'Fahrzeuge behalten' }}
+            </button>
+            <button class="btn-danger" :disabled="deletingCategory" @click="deleteCategoryWithVehicles('delete')">
+              {{ deletingCategory ? 'Wird verarbeitet…' : 'Alles löschen' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Delete Confirm -->
       <div v-if="confirmDeleteId" class="modal-backdrop" @click.self="confirmDeleteId = null">
         <div class="modal modal-sm">
@@ -227,25 +296,29 @@ async function confirmDelete(id) {
 </template>
 
 <style scoped>
-.admin-layout { min-height: 100vh; background: #0b0b1e; }
+.admin-layout { min-height: 100vh; background:
+  radial-gradient(ellipse 80% 60% at top left, rgba(250,11,219,0.08) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
+  #272736; }
 
 .admin-main {
   max-width: 900px;
   margin: 0 auto;
-  padding: 96px 5% 80px;
+  padding: 112px 5% 80px;
 }
 
 .state-msg { text-align: center; padding: 60px 0; color: #8b8fa8; }
+
 
 .page-header { margin-bottom: 32px; }
 .page-label {
   font-family: 'Orbitron', sans-serif;
   font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-  color: #FA0BDB; margin-bottom: 10px;
+  color: #00DDFF; margin-bottom: 10px;
 }
 .page-title {
   font-family: 'Orbitron', sans-serif;
-  font-size: clamp(22px, 3.5vw, 36px); font-weight: 700; color: white; margin: 0 0 8px;
+  font-size: clamp(22px, 3.5vw, 36px); font-weight: 700; color: #FA0BDB; margin: 0 0 8px;
 }
 .page-sub { font-size: 13px; color: rgba(255,255,255,0.4); margin: 0; }
 
@@ -307,7 +380,7 @@ async function confirmDelete(id) {
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal {
-  background: #12122a; border: 1px solid rgba(0,221,255,0.2);
+  background: #1e1e2e; border: 1px solid rgba(0,221,255,0.2);
   border-radius: 20px; padding: 32px; width: 100%; max-width: 460px;
 }
 .modal-sm { max-width: 360px; }
@@ -362,6 +435,19 @@ async function confirmDelete(id) {
   color: white; cursor: pointer;
 }
 .btn-danger:hover { box-shadow: 0 0 20px rgba(255,60,60,0.3); }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-unlink {
+  font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase; padding: 10px 24px;
+  border-radius: 20px; border: none;
+  background: linear-gradient(135deg, #9955FF, #6633cc);
+  color: white; cursor: pointer;
+}
+.btn-unlink:hover { box-shadow: 0 0 20px rgba(153,85,255,0.4); }
+.btn-unlink:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.conflict-actions { flex-wrap: wrap; gap: 8px; }
 .alert-error {
   background: rgba(255,60,60,0.08); border: 1px solid rgba(255,60,60,0.25);
   border-radius: 10px; padding: 10px 14px; color: #ff7070; font-size: 13px;
