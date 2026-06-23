@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useUserStore } from '../stores/userStore.js'
 import { deleteProduct } from '../services/productService.js'
+import ConfirmDeleteModal from './ConfirmDeleteModal.vue'
 
 const props = defineProps({
   product: { type: Object, required: true }
@@ -12,7 +13,7 @@ const emit = defineEmits(['deleted'])
 const { getAccessTokenSilently } = useAuth0()
 const userStore = useUserStore()
 
-const confirmingDelete = ref(false)
+const showConfirm = ref(false)
 const deleting = ref(false)
 
 async function handleDelete() {
@@ -25,7 +26,7 @@ async function handleDelete() {
     console.error('Delete failed:', e)
   } finally {
     deleting.value = false
-    confirmingDelete.value = false
+    showConfirm.value = false
   }
 }
 </script>
@@ -48,20 +49,23 @@ async function handleDelete() {
         Bearbeiten
       </router-link>
       <button
-        v-if="userStore.isAdmin && !confirmingDelete"
+        v-if="userStore.isAdmin"
         class="btn-delete"
-        @click="confirmingDelete = true"
+        @click="showConfirm = true"
       >
         Löschen
       </button>
-      <template v-if="confirmingDelete">
-        <button class="btn-delete-confirm" :disabled="deleting" @click="handleDelete">
-          {{ deleting ? '…' : 'Sicher?' }}
-        </button>
-        <button class="btn-cancel-delete" @click="confirmingDelete = false">Abbrechen</button>
-      </template>
     </div>
   </div>
+
+  <ConfirmDeleteModal
+    v-if="showConfirm"
+    :title="`${product.title} löschen?`"
+    message="Das Fahrzeug wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+    :loading="deleting"
+    @confirm="handleDelete"
+    @cancel="showConfirm = false"
+  />
 </template>
 
 <style scoped>
@@ -168,32 +172,4 @@ async function handleDelete() {
   transition: background 0.2s;
 }
 .btn-delete:hover { background: rgba(255,60,60,0.08); }
-
-.btn-delete-confirm {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: none;
-  background: linear-gradient(135deg, #ff3333, #cc0000);
-  color: white;
-  cursor: pointer;
-}
-.btn-delete-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.btn-cancel-delete {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: none;
-  color: rgba(255,255,255,0.5);
-  cursor: pointer;
-}
-.btn-cancel-delete:hover { color: white; }
 </style>

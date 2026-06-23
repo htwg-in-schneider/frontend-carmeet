@@ -28,7 +28,7 @@ watch(
 // Poll profile every 10s to detect role changes
 let pollTimer = null
 onMounted(() => {
-  pollTimer = setInterval(() => userStore.fetchProfile(), 1000)
+  pollTimer = setInterval(() => userStore.fetchProfile(), 30000)
 })
 onUnmounted(() => clearInterval(pollTimer))
 </script>
@@ -53,13 +53,21 @@ onUnmounted(() => clearInterval(pollTimer))
           </router-link>
         </li>
         <li>
-          <router-link to="/admin/categories" :class="{ active: $route.path === '/admin/categories' }">
-            Fahrzeugkategorien
+          <router-link
+            to="/admin/fahrzeugverwaltung"
+            :class="{ active: $route.path.startsWith('/admin/fahrzeugverwaltung') }"
+          >
+            Fahrzeugverwaltung
           </router-link>
         </li>
         <li>
           <router-link to="/admin/users" :class="{ active: $route.path === '/admin/users' }">
             Nutzer
+          </router-link>
+        </li>
+        <li>
+          <router-link to="/admin/transactions" :class="{ active: $route.path === '/admin/transactions' }">
+            Transaktionen
           </router-link>
         </li>
         <li>
@@ -81,8 +89,9 @@ onUnmounted(() => clearInterval(pollTimer))
     <div v-if="mobileOpen" class="mobile-menu">
       <router-link to="/admin" @click="mobileOpen = false">Dashboard</router-link>
       <router-link to="/admin/events" @click="mobileOpen = false">Events</router-link>
-      <router-link to="/admin/categories" @click="mobileOpen = false">Fahrzeugkategorien</router-link>
+      <router-link to="/admin/fahrzeugverwaltung" @click="mobileOpen = false">Fahrzeugverwaltung</router-link>
       <router-link to="/admin/users" @click="mobileOpen = false">Nutzer</router-link>
+      <router-link to="/admin/transactions" @click="mobileOpen = false">Transaktionen</router-link>
       <router-link to="/user/profile" @click="mobileOpen = false">Profil</router-link>
       <button class="mobile-logout" @click="handleLogout">Abmelden</button>
     </div>

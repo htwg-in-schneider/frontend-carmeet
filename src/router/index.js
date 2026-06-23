@@ -100,6 +100,28 @@ const router = createRouter({
       beforeEnter: adminGuard,
       meta: { hideGlobalNav: true },
     },
+    {
+      path: '/admin/fahrzeugverwaltung',
+      name: 'admin-fahrzeugverwaltung',
+      component: () => import('../views/AdminVehicleManagementView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
+    {
+      path: '/admin/vehicles',
+      redirect: '/admin/fahrzeugverwaltung',
+    },
+    {
+      path: '/admin/reviews',
+      redirect: '/admin/fahrzeugverwaltung',
+    },
+    {
+      path: '/admin/transactions',
+      name: 'admin-transactions',
+      component: () => import('../views/AdminTransactionsView.vue'),
+      beforeEnter: adminGuard,
+      meta: { hideGlobalNav: true },
+    },
 
     // ── User area ────────────────────────────────────────────────
     {

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { getProductById, updateProduct, deleteProduct } from '../services/productService.js'
 import { getCategories } from '../services/categoryService.js'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,23 +119,11 @@ async function remove() {
           </div>
 
           <div class="form-actions">
-            <template v-if="!confirmDelete">
-              <button type="button" class="btn-delete" @click="confirmDelete = true">
-                Löschen
-              </button>
-            </template>
-            <template v-else>
-              <span class="delete-confirm-label">Wirklich löschen?</span>
-              <button type="button" class="btn-delete-confirm" :disabled="deleting" @click="remove">
-                {{ deleting ? '…' : 'Ja, löschen' }}
-              </button>
-              <button type="button" class="btn-cancel-inline" @click="confirmDelete = false">
-                Abbrechen
-              </button>
-            </template>
-
-            <router-link v-if="!confirmDelete" to="/products" class="btn-cancel">Abbrechen</router-link>
-            <button v-if="!confirmDelete" type="submit" class="btn-submit" :disabled="saving || !!successMsg">
+            <button type="button" class="btn-delete" @click="confirmDelete = true">
+              Löschen
+            </button>
+            <router-link to="/products" class="btn-cancel">Abbrechen</router-link>
+            <button type="submit" class="btn-submit" :disabled="saving || !!successMsg">
               {{ saving ? 'Wird gespeichert…' : 'Speichern' }}
             </button>
           </div>
@@ -142,6 +131,15 @@ async function remove() {
       </template>
     </div>
   </div>
+
+  <ConfirmDeleteModal
+    v-if="confirmDelete"
+    title="Fahrzeug löschen?"
+    message="Das Fahrzeug wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+    :loading="deleting"
+    @confirm="remove"
+    @cancel="confirmDelete = false"
+  />
 </template>
 
 <style scoped>

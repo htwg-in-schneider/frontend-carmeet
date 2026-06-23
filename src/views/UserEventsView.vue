@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import UserNavbar from '../components/UserNavbar.vue'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
 import { useUserStore } from '../stores/userStore.js'
 import { useEventStore } from '../stores/eventStore.js'
 import { getCategories } from '../services/categoryService.js'
@@ -181,8 +182,9 @@ async function sendMsg() {
 function chatMsgs(id) { return eventStore.messages[id] ?? [] }
 
 function participantName(p) {
-  if (p.firstName || p.lastName) return [p.firstName, p.lastName].filter(Boolean).join(' ')
-  return p.email || `#${p.id}`
+  const u = p.user ?? p
+  if (u.firstName || u.lastName) return [u.firstName, u.lastName].filter(Boolean).join(' ')
+  return u.email || `#${u.id ?? p.id}`
 }
 
 function formatMsgTime(ts) {
@@ -364,20 +366,14 @@ function formatMsgTime(ts) {
       </div>
     </div>
 
-    <!-- Delete Confirm Modal -->
-    <div v-if="deleteConfirm.open" class="modal-backdrop" @click.self="deleteConfirm.open = false">
-      <div class="modal modal-sm">
-        <div class="modal-header">
-          <div class="modal-title">Event löschen</div>
-          <button class="modal-close" @click="deleteConfirm.open = false">✕</button>
-        </div>
-        <p class="modal-body-text">„{{ deleteConfirm.event?.title }}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="deleteConfirm.open = false">Abbrechen</button>
-          <button class="btn-danger" :disabled="deleting" @click="doDelete">{{ deleting ? '…' : 'Löschen' }}</button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDeleteModal
+      v-if="deleteConfirm.open"
+      title="Event löschen?"
+      message="Das Event wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+      :loading="deleting"
+      @confirm="doDelete"
+      @cancel="deleteConfirm.open = false"
+    />
 
     <!-- Participants Modal -->
     <div v-if="participantsModal.open" class="modal-backdrop" @click.self="participantsModal.open = false">

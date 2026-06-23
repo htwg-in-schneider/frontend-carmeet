@@ -22,7 +22,7 @@ onMounted(async () => {
     <AdminNavbar />
 
     <main class="admin-main">
-      <div v-if="userStore.loading" class="state-msg">Wird geladen…</div>
+      <div v-if="!userStore.profile && userStore.loading" class="state-msg">Wird geladen…</div>
 
       <template v-else-if="userStore.isAdmin">
         <div class="page-header">
@@ -32,12 +32,12 @@ onMounted(async () => {
         </div>
 
         <div class="cards-grid">
-          <router-link to="/admin/users" class="dash-card">
-            <div class="card-accent"></div>
+          <router-link to="/admin/users" class="dash-card dash-card-secondary">
+            <div class="card-accent card-accent-secondary"></div>
             <div class="card-body">
-              <div class="card-title">Nutzerverwaltung</div>
+              <div class="card-title">Nutzer</div>
               <div class="card-desc">Benutzer anzeigen, bearbeiten, Rollen vergeben und Konten sperren.</div>
-              <span class="card-link">Nutzer verwalten →</span>
+              <span class="card-link card-link-secondary">Nutzer verwalten →</span>
             </div>
           </router-link>
 
@@ -45,26 +45,26 @@ onMounted(async () => {
             <div class="card-accent"></div>
             <div class="card-body">
               <div class="card-title">Events</div>
-              <div class="card-desc">Veranstaltungen erstellen, bearbeiten und verwalten.</div>
+              <div class="card-desc">Veranstaltungen einsehen, bearbeiten und löschen.</div>
               <span class="card-link">Events verwalten →</span>
             </div>
           </router-link>
 
-          <router-link to="/admin/categories" class="dash-card">
-            <div class="card-accent"></div>
+          <router-link to="/admin/fahrzeugverwaltung" class="dash-card dash-card-secondary">
+            <div class="card-accent card-accent-secondary"></div>
             <div class="card-body">
-              <div class="card-title">Fahrzeugkategorien</div>
-              <div class="card-desc">Kategorien anlegen, umbenennen und löschen.</div>
-              <span class="card-link">Kategorien verwalten →</span>
+              <div class="card-title">Fahrzeugverwaltung</div>
+              <div class="card-desc">Kategorien, Fahrzeuge und Bewertungen an einem Ort verwalten.</div>
+              <span class="card-link card-link-secondary">Fahrzeuge verwalten →</span>
             </div>
           </router-link>
 
-          <router-link to="/products" class="dash-card dash-card-secondary">
-            <div class="card-accent card-accent-secondary"></div>
+          <router-link to="/admin/transactions" class="dash-card">
+            <div class="card-accent"></div>
             <div class="card-body">
-              <div class="card-title">Fahrzeugkatalog</div>
-              <div class="card-desc">Den öffentlichen Fahrzeugkatalog anzeigen und Fahrzeuge direkt verwalten.</div>
-              <span class="card-link card-link-secondary">Zum Katalog →</span>
+              <div class="card-title">Transaktionen</div>
+              <div class="card-desc">Audit-Log aller Aktionen — Events, Fahrzeuge, Nutzer und mehr.</div>
+              <span class="card-link">Transaktionen →</span>
             </div>
           </router-link>
         </div>

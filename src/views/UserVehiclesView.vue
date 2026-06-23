@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-vue'
 import UserNavbar from '../components/UserNavbar.vue'
 import { getMyProducts, createProduct, updateProduct, deleteProduct } from '../services/productService.js'
 import { getCategories } from '../services/categoryService.js'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
 
 const { getAccessTokenSilently, user } = useAuth0()
 
@@ -37,6 +38,7 @@ const saving         = ref(false)
 const saveError      = ref(null)
 
 const confirmDeleteId = ref(null)
+const deleting        = ref(false)
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function toPayload(form) {
@@ -181,6 +183,7 @@ async function submitEdit() {
 
 // ── delete ────────────────────────────────────────────────────────────────────
 async function confirmDelete(id) {
+  deleting.value = true
   try {
     if (useMock.value) {
       vehicles.value = vehicles.value.filter(v => v.id !== id)
@@ -193,6 +196,7 @@ async function confirmDelete(id) {
   } catch (e) {
     error.value = e.message
   } finally {
+    deleting.value = false
     confirmDeleteId.value = null
   }
 }
@@ -341,21 +345,17 @@ async function confirmDelete(id) {
         </div>
       </div>
 
-      <!-- ── Delete Confirm ──────────────────────────────────────────────── -->
-      <div v-if="confirmDeleteId" class="modal-backdrop" @click.self="confirmDeleteId = null">
-        <div class="modal modal-sm">
-          <div class="modal-header">
-            <div class="modal-title">Fahrzeug löschen?</div>
-          </div>
-          <p class="modal-body-text">Das Fahrzeug wird dauerhaft entfernt und steht nicht mehr für Events zur Verfügung.</p>
-          <div class="modal-actions">
-            <button class="btn-cancel" @click="confirmDeleteId = null">Abbrechen</button>
-            <button class="btn-danger" @click="confirmDelete(confirmDeleteId)">Endgültig löschen</button>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
+
+  <ConfirmDeleteModal
+    v-if="confirmDeleteId"
+    title="Fahrzeug löschen?"
+    message="Das Fahrzeug wird dauerhaft entfernt und steht nicht mehr für Events zur Verfügung."
+    :loading="deleting"
+    @confirm="confirmDelete(confirmDeleteId)"
+    @cancel="confirmDeleteId = null"
+  />
 </template>
 
 <style scoped>
