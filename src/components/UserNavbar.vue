@@ -28,7 +28,7 @@ watch(
 // Poll profile every 10s to detect role changes
 let pollTimer = null
 onMounted(() => {
-  pollTimer = setInterval(() => userStore.fetchProfile(), 1000)
+  pollTimer = setInterval(() => userStore.fetchProfile(), 30000)
 })
 onUnmounted(() => clearInterval(pollTimer))
 </script>

@@ -3,8 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import AdminNavbar from '../components/AdminNavbar.vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService.js'
+import { getAllUsers } from '../services/adminService.js'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
-import { getProducts, deleteProduct, updateProduct } from '../services/productService.js'
+import { getProducts, createProduct, deleteProduct, updateProduct } from '../services/productService.js'
 
 const { getAccessTokenSilently } = useAuth0()
 const tab = ref('kategorien')
@@ -94,11 +95,60 @@ const veh_vehicles      = ref([])
 const veh_categories    = ref([])
 const veh_loading       = ref(false)
 const veh_error         = ref(null)
+const veh_categoryFilter = ref('')
+const veh_filteredVehicles = computed(() => {
+  if (!veh_categoryFilter.value) return veh_vehicles.value
+  return veh_vehicles.value.filter(v => String(v.category?.id) === String(veh_categoryFilter.value))
+})
+const veh_users         = ref([])
+const veh_showCreate    = ref(false)
+const veh_createForm    = ref({ make: '', model: '', horsepower: null, year: null, mileage: null, category: null, ownerId: null })
+const veh_creating      = ref(false)
+const veh_createError   = ref(null)
 const veh_editing       = ref(null)
-const veh_editForm      = ref({ title: '', description: '', category: null })
+const veh_editForm      = ref({ make: '', model: '', horsepower: null, year: null, mileage: null, category: null, ownerId: null })
 const veh_saving        = ref(false)
 const veh_saveError     = ref(null)
 const veh_confirmDelete = ref(null)
+
+async function veh_openCreate() {
+  veh_createForm.value = { make: '', model: '', horsepower: null, year: null, mileage: null, category: null, ownerId: null }
+  veh_createError.value = null
+  if (veh_users.value.length === 0) {
+    try {
+      const token = await getAccessTokenSilently()
+      veh_users.value = await getAllUsers(token)
+    } catch {}
+  }
+  veh_showCreate.value = true
+}
+async function veh_submitCreate() {
+  if (!veh_createForm.value.make.trim() || !veh_createForm.value.model.trim()) {
+    veh_createError.value = 'Bitte Marke und Modell angeben.'
+    return
+  }
+  if (!veh_createForm.value.category) {
+    veh_createError.value = 'Bitte eine Kategorie wählen.'
+    return
+  }
+  veh_creating.value = true; veh_createError.value = null
+  try {
+    const token = await getAccessTokenSilently()
+    const payload = {
+      make:       veh_createForm.value.make.trim(),
+      model:      veh_createForm.value.model.trim(),
+      horsepower: veh_createForm.value.horsepower != null && veh_createForm.value.horsepower !== '' ? Number(veh_createForm.value.horsepower) : null,
+      year:       veh_createForm.value.year       != null && veh_createForm.value.year       !== '' ? Number(veh_createForm.value.year)       : null,
+      mileage:    veh_createForm.value.mileage    != null && veh_createForm.value.mileage    !== '' ? Number(veh_createForm.value.mileage)    : null,
+      category:   veh_createForm.value.category ? { id: veh_createForm.value.category } : null,
+      owner:      veh_createForm.value.ownerId   ? { id: veh_createForm.value.ownerId }   : null,
+    }
+    const created = await createProduct(payload, token)
+    veh_vehicles.value.unshift(created)
+    veh_showCreate.value = false
+  } catch (e) { veh_createError.value = e.message }
+  finally { veh_creating.value = false }
+}
 
 async function veh_fetch() {
   veh_loading.value = true; veh_error.value = null
@@ -112,16 +162,46 @@ function veh_ownerDisplay(v) {
   if (!v.owner) return '—'
   return v.owner.email || `User #${v.owner.id}`
 }
-function veh_startEdit(v) {
+async function veh_startEdit(v) {
   veh_editing.value = v
-  veh_editForm.value = { title: v.title ?? '', description: v.description ?? '', category: v.category?.id ?? null }
+  veh_editForm.value = {
+    make:       v.make       ?? '',
+    model:      v.model      ?? '',
+    horsepower: v.horsepower ?? null,
+    year:       v.year       ?? null,
+    mileage:    v.mileage    ?? null,
+    category:   v.category?.id ?? null,
+    ownerId:    v.owner?.id  ?? null,
+  }
   veh_saveError.value = null
+  if (veh_users.value.length === 0) {
+    try {
+      const token = await getAccessTokenSilently()
+      veh_users.value = await getAllUsers(token)
+    } catch {}
+  }
 }
 async function veh_submitEdit() {
+  if (!veh_editForm.value.make.trim() || !veh_editForm.value.model.trim()) {
+    veh_saveError.value = 'Bitte Marke und Modell angeben.'
+    return
+  }
+  if (!veh_editForm.value.category) {
+    veh_saveError.value = 'Bitte eine Kategorie wählen.'
+    return
+  }
   veh_saving.value = true; veh_saveError.value = null
   try {
     const token = await getAccessTokenSilently()
-    const payload = { title: veh_editForm.value.title, description: veh_editForm.value.description, category: veh_editForm.value.category ? { id: veh_editForm.value.category } : null }
+    const payload = {
+      make:       veh_editForm.value.make.trim(),
+      model:      veh_editForm.value.model.trim(),
+      horsepower: veh_editForm.value.horsepower != null && veh_editForm.value.horsepower !== '' ? Number(veh_editForm.value.horsepower) : null,
+      year:       veh_editForm.value.year       != null && veh_editForm.value.year       !== '' ? Number(veh_editForm.value.year)       : null,
+      mileage:    veh_editForm.value.mileage    != null && veh_editForm.value.mileage    !== '' ? Number(veh_editForm.value.mileage)    : null,
+      category:   veh_editForm.value.category ? { id: veh_editForm.value.category } : null,
+      owner:      veh_editForm.value.ownerId   ? { id: veh_editForm.value.ownerId }   : null,
+    }
     const updated = await updateProduct(veh_editing.value.id, payload, token)
     const idx = veh_vehicles.value.findIndex(v => v.id === updated.id)
     if (idx !== -1) veh_vehicles.value[idx] = updated
@@ -271,12 +351,23 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
         <div v-if="veh_loading" class="state-msg">Wird geladen…</div>
         <div v-else-if="veh_error" class="alert-error">{{ veh_error }}</div>
         <template v-else>
-          <div class="count-row">{{ veh_vehicles.length }} Fahrzeuge</div>
+          <div class="filter-bar">
+            <select v-model="veh_categoryFilter" class="filter-select">
+              <option value="">Alle Kategorien</option>
+              <option v-for="cat in veh_categories" :key="cat.id" :value="cat.id">{{ cat.nameDe || cat.name }}</option>
+            </select>
+          </div>
+          <div class="toolbar">
+            <span class="count-label">
+              {{ veh_filteredVehicles.length }}<template v-if="veh_categoryFilter"> von {{ veh_vehicles.length }}</template> Fahrzeuge
+            </span>
+            <button class="btn-add" @click="veh_openCreate">+ Neues Fahrzeug</button>
+          </div>
           <div class="table-wrap">
             <table class="data-table">
               <thead><tr><th>ID</th><th>Titel</th><th>Kategorie</th><th>Besitzer</th><th>Aktionen</th></tr></thead>
               <tbody>
-                <tr v-for="v in veh_vehicles" :key="v.id">
+                <tr v-for="v in veh_filteredVehicles" :key="v.id">
                   <td class="col-id">{{ v.id }}</td>
                   <td class="col-title">{{ v.title }}</td>
                   <td class="col-sub">{{ v.category?.nameDe || v.category?.name || '—' }}</td>
@@ -347,7 +438,7 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
         <form @submit.prevent="cat_submitCreate" class="modal-form">
           <div v-if="cat_createError" class="alert-error">{{ cat_createError }}</div>
           <div class="field"><label>Name (EN) *</label><input v-model="cat_createForm.name" type="text" placeholder="z. B. Sports Car" required /></div>
-          <div class="field"><label>Name (DE)</label><input v-model="cat_createForm.nameDe" type="text" placeholder="z. B. Sportwagen" /></div>
+          <div class="field"><label>Name (DE) *</label><input v-model="cat_createForm.nameDe" type="text" placeholder="z. B. Sportwagen" required /></div>
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="cat_showCreate = false">Abbrechen</button>
             <button type="submit" class="btn-save" :disabled="cat_creating">{{ cat_creating ? 'Wird gespeichert…' : 'Anlegen' }}</button>
@@ -364,8 +455,8 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
         </div>
         <form @submit.prevent="cat_submitEdit" class="modal-form">
           <div v-if="cat_saveError" class="alert-error">{{ cat_saveError }}</div>
-          <div class="field"><label>Name (EN)</label><input v-model="cat_editForm.name" type="text" /></div>
-          <div class="field"><label>Name (DE)</label><input v-model="cat_editForm.nameDe" type="text" /></div>
+          <div class="field"><label>Name (EN) *</label><input v-model="cat_editForm.name" type="text" required /></div>
+          <div class="field"><label>Name (DE) *</label><input v-model="cat_editForm.nameDe" type="text" required /></div>
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="cat_editing = null">Abbrechen</button>
             <button type="submit" class="btn-save" :disabled="cat_saving">{{ cat_saving ? 'Wird gespeichert…' : 'Speichern' }}</button>
@@ -374,13 +465,11 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
       </div>
     </div>
 
-    <div v-if="cat_conflictId" class="modal-backdrop" @click.self="cat_conflictId = null">
-      <div class="modal">
-        <div class="modal-header">
-          <div class="modal-title">Kategorie enthält Fahrzeuge</div>
-          <button class="modal-close" @click="cat_conflictId = null">✕</button>
-        </div>
-        <p class="modal-body-text">
+    <div v-if="cat_conflictId" class="modal-backdrop modal-backdrop-delete" @click.self="cat_conflictId = null">
+      <div class="modal modal-delete">
+        <div class="modal-delete-icon">⚠</div>
+        <div class="modal-title">Kategorie enthält Fahrzeuge</div>
+        <p class="modal-delete-message">
           <strong style="color:white">{{ cat_vehiclesConflict.length }} Fahrzeug{{ cat_vehiclesConflict.length !== 1 ? 'e' : '' }}</strong>
           {{ cat_vehiclesConflict.length !== 1 ? 'sind' : 'ist' }} dieser Kategorie zugewiesen. Was soll passieren?
         </p>
@@ -401,21 +490,80 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
     />
 
     <!-- ── MODALS: FAHRZEUGE ─────────────────────────────────────────────────── -->
+    <div v-if="veh_showCreate" class="modal-backdrop" @click.self="veh_showCreate = false">
+      <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
+        <div class="modal-header">
+          <div class="modal-title">Neues Fahrzeug anlegen</div>
+          <button class="modal-close" @click="veh_showCreate = false">✕</button>
+        </div>
+        <form @submit.prevent="veh_submitCreate" class="modal-form">
+          <div v-if="veh_createError" class="alert-error">{{ veh_createError }}</div>
+          <div class="field-row">
+            <div class="field"><label>Marke *</label><input v-model="veh_createForm.make" type="text" placeholder="z. B. BMW" required /></div>
+            <div class="field"><label>Modell *</label><input v-model="veh_createForm.model" type="text" placeholder="z. B. M3 Competition" required /></div>
+          </div>
+          <div class="field">
+            <label>Kategorie *</label>
+            <select v-model="veh_createForm.category" required>
+              <option :value="null" disabled>— Bitte wählen —</option>
+              <option v-for="cat in veh_categories" :key="cat.id" :value="cat.id">{{ cat.nameDe || cat.name }}</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>PS <span class="opt">(optional)</span></label><input v-model="veh_createForm.horsepower" type="number" min="1" max="2000" placeholder="z. B. 510" /></div>
+            <div class="field"><label>Baujahr <span class="opt">(optional)</span></label><input v-model="veh_createForm.year" type="number" min="1886" max="2099" placeholder="z. B. 2021" /></div>
+          </div>
+          <div class="field"><label>Kilometer <span class="opt">(optional)</span></label><input v-model="veh_createForm.mileage" type="number" min="0" placeholder="z. B. 15000" /></div>
+          <div class="field">
+            <label>Fahrzeug zuweisen <span class="opt">(optional)</span></label>
+            <select v-model="veh_createForm.ownerId">
+              <option :value="null">— Kein Besitzer (kein Nutzer) —</option>
+              <option v-for="u in veh_users" :key="u.id" :value="u.id">
+                {{ u.firstName || u.lastName ? [u.firstName, u.lastName].filter(Boolean).join(' ') : (u.email || `User #${u.id}`) }}
+                <template v-if="u.email"> ({{ u.email }})</template>
+              </option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="veh_showCreate = false">Abbrechen</button>
+            <button type="submit" class="btn-save" :disabled="veh_creating">{{ veh_creating ? 'Wird gespeichert…' : 'Anlegen' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div v-if="veh_editing" class="modal-backdrop" @click.self="veh_editing = null">
-      <div class="modal">
+      <div class="modal" style="max-width:520px;max-height:90vh;overflow-y:auto">
         <div class="modal-header">
           <div class="modal-title">Fahrzeug bearbeiten</div>
           <button class="modal-close" @click="veh_editing = null">✕</button>
         </div>
         <form @submit.prevent="veh_submitEdit" class="modal-form">
           <div v-if="veh_saveError" class="alert-error">{{ veh_saveError }}</div>
-          <div class="field"><label>Titel</label><input v-model="veh_editForm.title" type="text" required /></div>
-          <div class="field"><label>Beschreibung</label><textarea v-model="veh_editForm.description" rows="3"></textarea></div>
+          <div class="field-row">
+            <div class="field"><label>Marke *</label><input v-model="veh_editForm.make" type="text" placeholder="z. B. BMW" required /></div>
+            <div class="field"><label>Modell *</label><input v-model="veh_editForm.model" type="text" placeholder="z. B. M3 Competition" required /></div>
+          </div>
           <div class="field">
-            <label>Kategorie</label>
-            <select v-model="veh_editForm.category">
-              <option :value="null">— Keine —</option>
+            <label>Kategorie *</label>
+            <select v-model="veh_editForm.category" required>
+              <option :value="null" disabled>— Bitte wählen —</option>
               <option v-for="cat in veh_categories" :key="cat.id" :value="cat.id">{{ cat.nameDe || cat.name }}</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>PS <span class="opt">(optional)</span></label><input v-model="veh_editForm.horsepower" type="number" min="1" max="2000" placeholder="z. B. 510" /></div>
+            <div class="field"><label>Baujahr <span class="opt">(optional)</span></label><input v-model="veh_editForm.year" type="number" min="1886" max="2099" placeholder="z. B. 2021" /></div>
+          </div>
+          <div class="field"><label>Kilometer <span class="opt">(optional)</span></label><input v-model="veh_editForm.mileage" type="number" min="0" placeholder="z. B. 15000" /></div>
+          <div class="field">
+            <label>Besitzer</label>
+            <select v-model="veh_editForm.ownerId">
+              <option :value="null">— Aktuellen Besitzer beibehalten —</option>
+              <option v-for="u in veh_users" :key="u.id" :value="u.id">
+                {{ u.firstName || u.lastName ? [u.firstName, u.lastName].filter(Boolean).join(' ') : (u.email || `User #${u.id}`) }}
+                <template v-if="u.email"> ({{ u.email }})</template>
+              </option>
             </select>
           </div>
           <div class="modal-actions">
@@ -568,6 +716,21 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal { background: #1e1e2e; border: 1px solid rgba(0,221,255,0.2); border-radius: 20px; padding: 32px; width: 100%; max-width: 460px; }
 .modal-sm { max-width: 360px; }
+
+/* Delete-style modal (matches ConfirmDeleteModal) */
+@keyframes cdm-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cdm-slide-up { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.modal-backdrop-delete { backdrop-filter: blur(4px); animation: cdm-fade-in 0.15s ease; }
+.modal-delete {
+  border-color: rgba(255, 60, 60, 0.35);
+  box-shadow: 0 0 40px rgba(255, 60, 60, 0.12), 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  text-align: center;
+  animation: cdm-slide-up 0.18s ease;
+}
+.modal-delete-icon { font-size: 28px; margin-bottom: 14px; color: #ff5555; filter: drop-shadow(0 0 8px rgba(255,60,60,0.5)); }
+.modal-delete-message { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; margin: 10px 0 28px; }
+.modal-delete .modal-actions { justify-content: center; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .modal-title { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: white; }
 .modal-close { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 14px; cursor: pointer; }
@@ -575,7 +738,9 @@ onMounted(() => Promise.all([cat_fetch(), veh_fetch(), rev_fetch()]))
 .modal-body-text { font-size: 14px; color: rgba(255,255,255,0.5); margin: 0 0 24px; }
 .modal-form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .field label { font-family: 'Orbitron', sans-serif; font-size: 8.5px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+.opt { font-size: 7.5px; color: rgba(255,255,255,0.25); font-family: inherit; }
 .field input, .field textarea, .field select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; color: white; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; resize: vertical; }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(0,221,255,0.5); }
 .field select option { background: #272736; }

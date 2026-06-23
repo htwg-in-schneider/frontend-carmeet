@@ -18,6 +18,20 @@ watch(
   async (loggedIn) => {
     if (loggedIn) {
       await userStore.fetchProfile()
+
+      // Push the Auth0 email to the backend if it isn't stored yet.
+      // user.value.email comes from the OIDC ID token — always available when logged in.
+      const auth0Email = user.value?.email
+      if (auth0Email && userStore.profile && !userStore.profile.email) {
+        try {
+          await userStore.saveProfile({
+            firstName: userStore.profile.firstName ?? '',
+            lastName: userStore.profile.lastName ?? '',
+            email: auth0Email,
+          })
+        } catch {}
+      }
+
       const pendingTarget = localStorage.getItem('postLoginTarget')
       if (pendingTarget) {
         localStorage.removeItem('postLoginTarget')
@@ -25,7 +39,9 @@ watch(
       } else if (LANDING_PATHS.includes(route.path)) {
         if (userStore.isAdmin) {
           router.push('/admin')
-        } else {
+        } else if (userStore.profile) {
+          // Only redirect to user area if profile was actually loaded — not if the
+          // backend was down and fetchProfile silently failed (profile would be null).
           router.push('/user/events')
         }
       }

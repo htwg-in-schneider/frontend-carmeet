@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authGuard } from '@auth0/auth0-vue'
-import { adminGuard } from './guards.js'
+import { adminGuard, userOnlyGuard } from './guards.js'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
@@ -53,11 +53,13 @@ const router = createRouter({
       path: '/products/create',
       name: 'product-create',
       component: () => import('../views/CreateProduct.vue'),
+      beforeEnter: authGuard,
     },
     {
       path: '/products/edit/:id',
       name: 'product-edit',
       component: () => import('../views/EditProduct.vue'),
+      beforeEnter: authGuard,
     },
     {
       path: '/products/:id',
@@ -132,14 +134,14 @@ const router = createRouter({
       path: '/user/events',
       name: 'user-events',
       component: () => import('../views/UserEventsView.vue'),
-      beforeEnter: authGuard,
+      beforeEnter: userOnlyGuard,
       meta: { hideGlobalNav: true },
     },
     {
       path: '/user/vehicles',
       name: 'user-vehicles',
       component: () => import('../views/UserVehiclesView.vue'),
-      beforeEnter: authGuard,
+      beforeEnter: userOnlyGuard,
       meta: { hideGlobalNav: true },
     },
     {
@@ -153,7 +155,7 @@ const router = createRouter({
       path: '/user/become-event-manager',
       name: 'become-event-manager',
       component: () => import('../views/BecomeEventManagerView.vue'),
-      beforeEnter: authGuard,
+      beforeEnter: userOnlyGuard,
       meta: { hideGlobalNav: true },
     },
   ],

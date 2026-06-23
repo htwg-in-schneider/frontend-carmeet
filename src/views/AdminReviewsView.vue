@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useAuth0 } from '@auth0/auth0-vue'
 import AdminNavbar from '../components/AdminNavbar.vue'
 
+const { getAccessTokenSilently } = useAuth0()
 const BASE = '/api'
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -84,9 +86,13 @@ async function submitEdit() {
   saving.value = true
   saveError.value = null
   try {
+    const token = await getAccessTokenSilently()
     const res = await fetch(`${BASE}/review/${editingReview.value.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
         userName: editForm.value.userName,
         text:     editForm.value.text,
@@ -118,7 +124,11 @@ function cancelDelete() {
 async function confirmDelete() {
   deleting.value = true
   try {
-    const res = await fetch(`${BASE}/review/${confirmDeleteId.value}`, { method: 'DELETE' })
+    const token = await getAccessTokenSilently()
+    const res = await fetch(`${BASE}/review/${confirmDeleteId.value}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     reviews.value = reviews.value.filter(r => r.id !== confirmDeleteId.value)
     confirmDeleteId.value = null

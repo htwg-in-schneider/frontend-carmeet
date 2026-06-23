@@ -1,20 +1,8 @@
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore.js'
 import AdminNavbar from '../components/AdminNavbar.vue'
 
-const router = useRouter()
 const userStore = useUserStore()
-
-onMounted(async () => {
-  if (!userStore.profile) {
-    await userStore.fetchProfile()
-  }
-  if (!userStore.isAdmin) {
-    router.replace('/')
-  }
-})
 </script>
 
 <template>

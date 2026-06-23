@@ -8,7 +8,7 @@ import { getCategories } from '../services/categoryService.js'
 const router = useRouter()
 const { getAccessTokenSilently } = useAuth0()
 
-const form = ref({ title: '', description: '', categoryId: '' })
+const form = ref({ make: '', model: '', description: '', categoryId: '' })
 const loading = ref(false)
 const error = ref(null)
 const successMsg = ref(null)
@@ -26,19 +26,19 @@ onMounted(async () => {
 })
 
 async function submit() {
-  if (!form.value.title.trim()) {
-    error.value = 'Titel ist erforderlich.'
-    return
-  }
+  if (!form.value.make.trim()) { error.value = 'Marke ist erforderlich.'; return }
+  if (!form.value.model.trim()) { error.value = 'Modell ist erforderlich.'; return }
+  if (!form.value.categoryId) { error.value = 'Kategorie ist erforderlich.'; return }
 
   loading.value = true
   error.value = null
   successMsg.value = null
 
   const payload = {
-    title: form.value.title,
+    make: form.value.make.trim(),
+    model: form.value.model.trim(),
     description: form.value.description,
-    category: form.value.categoryId ? { id: Number(form.value.categoryId) } : undefined,
+    category: { id: Number(form.value.categoryId) },
   }
 
   try {
@@ -68,9 +68,15 @@ async function submit() {
       <div v-if="successMsg" class="alert-success">{{ successMsg }}</div>
 
       <form @submit.prevent="submit" class="form">
-        <div class="field">
-          <label>Titel</label>
-          <input v-model="form.title" type="text" placeholder="z. B. BMW 320i" />
+        <div class="field-row">
+          <div class="field">
+            <label>Marke *</label>
+            <input v-model="form.make" type="text" placeholder="z. B. BMW" />
+          </div>
+          <div class="field">
+            <label>Modell *</label>
+            <input v-model="form.model" type="text" placeholder="z. B. M3 Competition" />
+          </div>
         </div>
 
         <div class="field">
@@ -79,9 +85,9 @@ async function submit() {
         </div>
 
         <div class="field">
-          <label>Kategorie</label>
-          <select v-model="form.categoryId" :disabled="categoriesLoading">
-            <option value="">— Keine Kategorie —</option>
+          <label>Kategorie *</label>
+          <select v-model="form.categoryId" :disabled="categoriesLoading" required>
+            <option value="" disabled>— Bitte wählen —</option>
             <option v-for="cat in categories" :key="cat.id" :value="cat.id">
               {{ cat.nameDe || cat.name }}
             </option>
@@ -169,6 +175,12 @@ async function submit() {
   display: flex;
   flex-direction: column;
   gap: 22px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .field {

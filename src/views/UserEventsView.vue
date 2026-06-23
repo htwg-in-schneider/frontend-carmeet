@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import UserNavbar from '../components/UserNavbar.vue'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
+import AddressAutocomplete from '../components/AddressAutocomplete.vue'
 import { useUserStore } from '../stores/userStore.js'
 import { useEventStore } from '../stores/eventStore.js'
 import { getCategories } from '../services/categoryService.js'
@@ -64,6 +65,7 @@ const displayedEvents = computed(() =>
 
 watch(() => formModal.value.open, (open) => {
   if (open) {
+    refreshMinDateTime()
     const ev = formModal.value.event
     formData.value = ev
       ? {
@@ -127,10 +129,20 @@ async function leave(event) {
 async function submitForm() {
   formSaving.value = true
   formError.value = null
+  if (!formData.value.date) {
+    formError.value = 'Datum & Uhrzeit ist ein Pflichtfeld.'
+    formSaving.value = false
+    return
+  }
+  if (new Date(formData.value.date) <= new Date()) {
+    formError.value = 'Datum und Uhrzeit müssen in der Zukunft liegen.'
+    formSaving.value = false
+    return
+  }
   try {
     const payload = {
       ...formData.value,
-      date: formData.value.date ? new Date(formData.value.date).toISOString() : null,
+      date: new Date(formData.value.date).toISOString(),
       maxParticipants: Number(formData.value.maxParticipants),
     }
     if (formModal.value.event) {
@@ -177,6 +189,14 @@ async function sendMsg() {
   await eventStore.postMessage(chatModal.value.event.id, content)
   await nextTick()
   if (chatScroll.value) chatScroll.value.scrollTop = chatScroll.value.scrollHeight
+}
+
+const minDateTime = ref('')
+
+function refreshMinDateTime() {
+  const now = new Date()
+  const offset = now.getTimezoneOffset()
+  minDateTime.value = new Date(now.getTime() - offset * 60 * 1000).toISOString().slice(0, 16)
 }
 
 function chatMsgs(id) { return eventStore.messages[id] ?? [] }
@@ -345,12 +365,12 @@ function formatMsgTime(ts) {
             </div>
           </div>
           <div class="field">
-            <label>Treffpunkt</label>
-            <input v-model="formData.address" type="text" placeholder="Straße, PLZ Ort" required />
+            <label>Treffpunkt *</label>
+            <AddressAutocomplete v-model="formData.address" placeholder="Straße, PLZ Ort" :required="true" />
           </div>
           <div class="field">
-            <label>Datum &amp; Uhrzeit</label>
-            <input v-model="formData.date" type="datetime-local" required />
+            <label>Datum &amp; Uhrzeit *</label>
+            <input v-model="formData.date" type="datetime-local" :min="minDateTime" required />
           </div>
           <div class="field">
             <label>Beschreibung</label>

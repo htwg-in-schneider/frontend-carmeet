@@ -103,11 +103,6 @@ function sendFeedback() {
         </form>
       </div>
 
-      <div class="legal-links">
-        <router-link to="/impressum" class="legal-link">Impressum</router-link>
-        <span class="legal-sep">·</span>
-        <router-link to="/datenschutz" class="legal-link">Datenschutzerklärung</router-link>
-      </div>
     </div>
   </section>
 </template>
@@ -259,30 +254,6 @@ section {
   opacity: 0.35;
   cursor: not-allowed;
   box-shadow: none;
-}
-
-/* ─── LEGAL LINKS ─── */
-.legal-links {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 40px;
-}
-
-.legal-link {
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.5);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.legal-link:hover {
-  color: #00DDFF;
-}
-
-.legal-sep {
-  color: rgba(255, 255, 255, 0.25);
-  font-size: 13.5px;
 }
 
 /* ─── RESPONSIVE ─── */

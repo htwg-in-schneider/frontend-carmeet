@@ -19,6 +19,7 @@ const auth0 = createAuth0({
   authorizationParams: {
     audience: import.meta.env.VITE_AUTH0_AUDIENCE,
     redirect_uri: window.location.origin,
+    scope: 'openid profile email',
   },
 })
 

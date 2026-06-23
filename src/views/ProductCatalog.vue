@@ -4,10 +4,8 @@ import { useRoute } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import ProductFilter from '../components/ProductFilter.vue'
 import { getProducts } from '../services/productService.js'
-import { useUserStore } from '../stores/userStore.js'
 
 const route = useRoute()
-const userStore = useUserStore()
 
 const products = ref([])
 const loading = ref(true)
@@ -46,7 +44,6 @@ watch(
         <div class="catalog-label">Backend API</div>
         <h1 class="catalog-title">Autokatalog</h1>
       </div>
-      <router-link v-if="userStore.isAdmin" to="/products/create" class="btn-create">+ Neues Auto hinzufügen</router-link>
     </div>
 
     <ProductFilter />
@@ -99,26 +96,6 @@ watch(
   font-weight: 700;
   color: #FA0BDB;
   margin: 0;
-}
-
-.btn-create {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  padding: 12px 24px;
-  border-radius: 30px;
-  background: linear-gradient(135deg, #FA0BDB, #9955FF);
-  color: white;
-  text-decoration: none;
-  white-space: nowrap;
-  align-self: center;
-  box-shadow: 0 0 24px rgba(153,85,255,0.3);
-  transition: box-shadow 0.3s;
-}
-.btn-create:hover {
-  box-shadow: 0 0 40px rgba(153,85,255,0.5);
 }
 
 .product-grid {

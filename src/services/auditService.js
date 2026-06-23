@@ -53,6 +53,23 @@ export async function getDistinctEntityTypes(token) {
   return handleResponse(res)
 }
 
+export async function deleteAuditLog(token, id) {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return handleResponse(res)
+}
+
+export async function deleteAllAuditLogs(token) {
+  const res = await fetch(BASE_URL, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return handleResponse(res)
+}
+
+
 /**
  * Generate a transaction ID on the frontend for grouping multi-step operations.
  * Pass the returned ID as the X-Transaction-Id header in each related API call.
