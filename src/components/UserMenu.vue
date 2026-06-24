@@ -103,7 +103,7 @@ onUnmounted(() => document.removeEventListener('click', handleOutsideClick))
         <template v-if="userStore.isAdmin">
           <li><router-link class="dropdown-item" to="/admin">Dashboard</router-link></li>
           <li><router-link class="dropdown-item" to="/admin/events">Events</router-link></li>
-          <li><router-link class="dropdown-item" to="/admin/categories">Fahrzeugkategorien</router-link></li>
+          <li><router-link class="dropdown-item" to="/admin/fahrzeugverwaltung">Fahrzeugverwaltung</router-link></li>
           <li><router-link class="dropdown-item" to="/admin/users">Nutzer</router-link></li>
           <li><router-link class="dropdown-item" to="/user/profile">Profil</router-link></li>
         </template>

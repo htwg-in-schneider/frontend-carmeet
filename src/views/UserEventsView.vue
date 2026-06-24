@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import UserNavbar from '../components/UserNavbar.vue'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal.vue'
 import AddressAutocomplete from '../components/AddressAutocomplete.vue'
@@ -221,6 +222,12 @@ function refreshMinDateTime() {
   const offset = now.getTimezoneOffset()
   minDateTime.value = new Date(now.getTime() - offset * 60 * 1000).toISOString().slice(0, 16)
 }
+
+onBeforeRouteLeave(() => {
+  if (formModal.value.open) {
+    return window.confirm('Du hast ein offenes Formular. Möchtest du die Seite wirklich verlassen? Deine Eingaben gehen verloren.')
+  }
+})
 
 function chatMsgs(id) { return eventStore.messages[id] ?? [] }
 
