@@ -12,7 +12,7 @@ const mobileOpen = ref(false)
 
 function handleLogout() {
   userStore.clear()
-  logout({ logoutParams: { returnTo: window.location.origin } })
+  logout({ logoutParams: { returnTo: window.location.origin + import.meta.env.BASE_URL } })
 }
 
 // Redirect immediately when role is upgraded to ADMIN
