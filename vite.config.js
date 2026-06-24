@@ -8,22 +8,11 @@ const repoName = '/frontend-carmeet/';
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? repoName : '/',
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  base: '/frontend-carmeet/',
+  plugins: [vue(), vueDevTools()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      }
-    }
-  }
 })
