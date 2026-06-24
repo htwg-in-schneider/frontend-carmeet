@@ -31,6 +31,7 @@ const participantsModal = ref({ open: false, event: null, list: [], loading: fal
 
 const chatModal = ref({ open: false, event: null, newMsg: '' })
 const chatScroll = ref(null)
+let chatPollInterval = null
 
 const myVehicles = ref([])
 const vehicleModal = ref({ open: false, event: null, vehicles: [] })
@@ -92,6 +93,11 @@ function formatDate(dateStr) {
   return `${days[d.getDay()]}, ${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} Uhr`
 }
 
+function isEventEnded(event) {
+  if (!event.date) return false
+  return new Date(event.date) < new Date()
+}
+
 function eventColor(eventId) {
   const colors = ['theme-cyan', 'theme-pink', 'theme-purple']
   return colors[(eventId - 1) % 3]
@@ -100,17 +106,18 @@ function eventColor(eventId) {
 function openVehicleModal(event) {
   const catName = (event.category ?? '').toLowerCase()
   const matching = myVehicles.value.filter(v => {
-    const vCat = (v.category?.nameDe || v.category?.name || '').toLowerCase()
-    return vCat === catName
+    const vCatEn = (v.category?.name || '').toLowerCase()
+    const vCatDe = (v.category?.nameDe || '').toLowerCase()
+    return vCatEn === catName || vCatDe === catName
   })
   vehicleModal.value = { open: true, event, vehicles: matching }
 }
 
-async function joinWithVehicle() {
+async function joinWithVehicle(vehicle) {
   vehicleJoining.value = true
   joining.value = vehicleModal.value.event.id
   try {
-    await eventStore.joinEvent(vehicleModal.value.event.id)
+    await eventStore.joinEvent(vehicleModal.value.event.id, vehicle.id)
     vehicleModal.value.open = false
   } catch (e) { console.error(e) } finally {
     vehicleJoining.value = false
@@ -180,6 +187,22 @@ async function openChat(event) {
   await eventStore.fetchMessages(event.id)
   await nextTick()
   if (chatScroll.value) chatScroll.value.scrollTop = chatScroll.value.scrollHeight
+  clearInterval(chatPollInterval)
+  chatPollInterval = setInterval(async () => {
+    if (!chatModal.value.open) { clearInterval(chatPollInterval); return }
+    const before = (eventStore.messages[event.id] ?? []).length
+    await eventStore.refreshMessages(event.id)
+    const after = (eventStore.messages[event.id] ?? []).length
+    if (after > before) {
+      await nextTick()
+      if (chatScroll.value) chatScroll.value.scrollTop = chatScroll.value.scrollHeight
+    }
+  }, 3000)
+}
+
+function closeChat() {
+  clearInterval(chatPollInterval)
+  chatModal.value.open = false
 }
 
 async function sendMsg() {
@@ -238,7 +261,7 @@ function formatMsgTime(ts) {
         </button>
         <button :class="['tab-btn', { active: tab === 'joined' }]" @click="tab = 'joined'">
           Beigetreten
-          <span v-if="eventStore.joinedIds.size" class="tab-count">{{ eventStore.joinedIds.size }}</span>
+          <span v-if="eventStore.joinedEvents.length" class="tab-count">{{ eventStore.joinedEvents.length }}</span>
         </button>
       </div>
 
@@ -265,7 +288,8 @@ function formatMsgTime(ts) {
             <div class="card-info">
               <div class="card-title-row">
                 <span class="card-title">{{ event.title }}</span>
-                <span v-if="eventStore.isOwnEvent(event)" class="own-badge">Mein Event</span>
+                <span v-if="isEventEnded(event)" class="ended-badge">Abgeschlossen</span>
+                <span v-else-if="eventStore.isOwnEvent(event)" class="own-badge">Mein Event</span>
               </div>
               <div class="card-meta">
                 <span>{{ event.address }}</span>
@@ -313,25 +337,33 @@ function formatMsgTime(ts) {
 
               <!-- Available: join -->
               <div v-if="tab === 'available' && !eventStore.isOwnEvent(event)" class="expanded-foot">
-                <button
-                  v-if="!eventStore.isJoined(event.id)"
-                  class="btn-join"
-                  :disabled="event.currentParticipants >= event.maxParticipants"
-                  @click="openVehicleModal(event)"
-                >
-                  Teilnehmen · {{ event.currentParticipants }}/{{ event.maxParticipants }}
-                </button>
-                <div v-else class="joined-indicator">✓ Bereits beigetreten</div>
+                <div v-if="isEventEnded(event)" class="ended-notice">Dieses Event ist bereits abgeschlossen.</div>
+                <template v-else>
+                  <button
+                    v-if="!eventStore.isJoined(event.id)"
+                    class="btn-join"
+                    :disabled="event.currentParticipants >= event.maxParticipants"
+                    @click="openVehicleModal(event)"
+                  >
+                    Teilnehmen · {{ event.currentParticipants }}/{{ event.maxParticipants }}
+                  </button>
+                  <div v-else class="joined-indicator">✓ Bereits beigetreten</div>
+                </template>
               </div>
 
               <!-- Joined: chat + leave -->
               <div v-if="tab === 'joined'" class="expanded-foot expanded-foot-row">
-                <button class="btn-sm btn-outline-cyan grow" @click="openChat(event)">Event-Chat</button>
-                <button
-                  class="btn-sm btn-outline-red"
-                  :disabled="leaving === event.id"
-                  @click="leave(event)"
-                >{{ leaving === event.id ? '…' : 'Stornieren' }}</button>
+                <template v-if="isEventEnded(event)">
+                  <div class="ended-notice">Event abgeschlossen – wird in Kürze automatisch entfernt.</div>
+                </template>
+                <template v-else>
+                  <button class="btn-sm btn-outline-cyan grow" @click="openChat(event)">Event-Chat</button>
+                  <button
+                    class="btn-sm btn-outline-red"
+                    :disabled="leaving === event.id"
+                    @click="leave(event)"
+                  >{{ leaving === event.id ? '…' : 'Stornieren' }}</button>
+                </template>
               </div>
             </div>
           </transition>
@@ -355,9 +387,16 @@ function formatMsgTime(ts) {
           <div class="field-row">
             <div class="field">
               <label>Kategorie</label>
-              <select v-model="formData.category" required>
+              <select
+                v-model="formData.category"
+                required
+                :disabled="formModal.event && formModal.event.currentParticipants > 1"
+              >
                 <option v-for="c in categories" :key="c.id ?? c.name" :value="c.name">{{ c.name }}</option>
               </select>
+              <small v-if="formModal.event && formModal.event.currentParticipants > 1" class="field-hint">
+                Kategorie kann nicht geändert werden – es sind bereits Teilnehmer beigetreten.
+              </small>
             </div>
             <div class="field field-sm">
               <label>Max. Teilnehmer</label>
@@ -449,7 +488,7 @@ function formatMsgTime(ts) {
               :key="v.id"
               class="vehicle-pick-card"
               :disabled="vehicleJoining"
-              @click="joinWithVehicle()"
+              @click="joinWithVehicle(v)"
             >
               <div class="vpick-cat">{{ v.category?.nameDe || v.category?.name }}</div>
               <div class="vpick-title">{{ v.make }} {{ v.model }}</div>
@@ -471,11 +510,11 @@ function formatMsgTime(ts) {
     </div>
 
     <!-- Chat Modal -->
-    <div v-if="chatModal.open" class="modal-backdrop" @click.self="chatModal.open = false">
+    <div v-if="chatModal.open" class="modal-backdrop" @click.self="closeChat()">
       <div class="modal modal-chat">
         <div class="modal-header chat-header">
           <div class="modal-title">Event-Chat · {{ chatModal.event?.title }}</div>
-          <button class="modal-close" @click="chatModal.open = false">✕</button>
+          <button class="modal-close" @click="closeChat()">✕</button>
         </div>
         <div class="chat-messages" ref="chatScroll">
           <div v-if="chatMsgs(chatModal.event?.id).length === 0" class="chat-empty">
@@ -715,6 +754,24 @@ function formatMsgTime(ts) {
   color: white;
 }
 
+.ended-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 7px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 140, 0, 0.12);
+  border: 1px solid rgba(255, 140, 0, 0.35);
+  color: #ff9900;
+  white-space: nowrap;
+}
+.ended-notice {
+  font-size: 11px;
+  color: rgba(255, 140, 0, 0.7);
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.5px;
+}
 .own-badge {
   font-family: 'Orbitron', sans-serif;
   font-size: 7px;
@@ -996,6 +1053,7 @@ function formatMsgTime(ts) {
 
 /* Form fields */
 .field { display: flex; flex-direction: column; gap: 6px; }
+.field-hint { font-size: 11px; color: rgba(255,170,0,0.7); margin-top: 2px; }
 .field-row { display: grid; grid-template-columns: 1fr 130px; gap: 12px; }
 .field-sm { }
 

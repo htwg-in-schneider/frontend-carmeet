@@ -52,6 +52,7 @@ async function submit() {
     const token = await getAccessTokenSilently()
     const updated = await becomeEventManager(token)
     userStore.profile.role = updated.role
+    userStore.profile.eventManager = true
     router.replace('/user/profile')
   } catch (e) {
     submitError.value = e.message
@@ -140,10 +141,6 @@ async function submit() {
             </div>
           </div>
 
-          <p class="dummy-notice">
-            ⚠ Testumgebung — keine echten Zahlungsdaten eingeben.
-          </p>
-
           <button type="submit" class="btn-subscribe" :disabled="!canSubmit || submitting">
             {{ submitting ? 'Wird verarbeitet…' : 'Abo abschließen' }}
           </button>
@@ -157,10 +154,6 @@ async function submit() {
 <style scoped>
 .em-layout {
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse 80% 60% at top left, rgba(153,85,255,0.1) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at bottom right, rgba(0,221,255,0.06) 0%, transparent 55%),
-    #272736;
 }
 
 .em-main {
@@ -245,13 +238,6 @@ async function submit() {
 
 .field-hint { font-size: 11px; }
 .field-hint.error { color: #ff7070; }
-
-.dummy-notice {
-  font-size: 11px;
-  color: rgba(255,170,0,0.7);
-  margin: 4px 0 0;
-  text-align: center;
-}
 
 .btn-subscribe {
   font-family: 'Orbitron', sans-serif;

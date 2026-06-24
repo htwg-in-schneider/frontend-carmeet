@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { getProfile, updateProfile } from '../services/profileService.js'
-
 export const useUserStore = defineStore('user', () => {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0()
 

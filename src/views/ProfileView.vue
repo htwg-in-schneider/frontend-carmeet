@@ -274,9 +274,7 @@ async function submitEdit() {
                 </div>
               </div>
 
-              <p class="dummy-notice">⚠ Testumgebung — keine echten Zahlungsdaten eingeben.</p>
-
-              <div class="em-actions">
+<div class="em-actions">
                 <button type="submit" class="btn-subscribe" :disabled="!emCanSubmit || emSubmitting">
                   {{ emSubmitting ? 'Wird verarbeitet…' : 'Abo abschließen' }}
                 </button>
@@ -639,13 +637,6 @@ async function submitEdit() {
 }
 
 .em-alert { margin: 0; }
-
-.dummy-notice {
-  font-size: 11px;
-  color: rgba(255,170,0,0.7);
-  margin: 0;
-  text-align: center;
-}
 
 .em-actions { display: flex; justify-content: flex-end; }
 

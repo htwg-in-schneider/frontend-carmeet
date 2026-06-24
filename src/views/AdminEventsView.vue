@@ -70,6 +70,11 @@ function formatDate(dateStr) {
   return `${days[d.getDay()]}, ${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} Uhr`
 }
 
+function isEventEnded(event) {
+  if (!event.date) return false
+  return new Date(event.date) < new Date()
+}
+
 function eventColor(eventId) {
   const colors = ['theme-cyan', 'theme-pink', 'theme-purple']
   return colors[(eventId - 1) % 3]
@@ -182,7 +187,10 @@ function formatMsgTime(ts) {
             <!-- Header -->
             <div class="card-header" @click="toggleExpand(event.id)">
               <div class="card-info">
-                <div class="card-title">{{ event.title }}</div>
+                <div class="card-title-row">
+                  <span class="card-title">{{ event.title }}</span>
+                  <span v-if="isEventEnded(event)" class="ended-badge">Abgeschlossen</span>
+                </div>
                 <div class="card-meta">
                   <span>{{ event.address }}</span>
                   <span class="dot">·</span>
@@ -249,9 +257,16 @@ function formatMsgTime(ts) {
           <div class="field-row">
             <div class="field">
               <label>Kategorie</label>
-              <select v-model="formData.category" required>
+              <select
+                v-model="formData.category"
+                required
+                :disabled="formModal.event && formModal.event.currentParticipants > 1"
+              >
                 <option v-for="c in categories" :key="c.id ?? c.name" :value="c.name">{{ c.name }}</option>
               </select>
+              <small v-if="formModal.event && formModal.event.currentParticipants > 1" class="field-hint">
+                Kategorie kann nicht geändert werden – es sind bereits Teilnehmer beigetreten.
+              </small>
             </div>
             <div class="field field-sm">
               <label>Max. Teilnehmer</label>
@@ -461,11 +476,28 @@ function formatMsgTime(ts) {
 
 .card-info { flex: 1; min-width: 0; }
 
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
 .card-title {
   font-size: 15px;
   font-weight: 600;
   color: white;
-  margin-bottom: 6px;
+}
+.ended-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 7px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 140, 0, 0.12);
+  border: 1px solid rgba(255, 140, 0, 0.35);
+  color: #ff9900;
+  white-space: nowrap;
 }
 
 .card-meta {
@@ -628,6 +660,7 @@ function formatMsgTime(ts) {
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
+.field-hint { font-size: 11px; color: rgba(255,170,0,0.7); margin-top: 2px; }
 .field-row { display: grid; grid-template-columns: 1fr 130px; gap: 12px; }
 .field label { font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
 .field input,

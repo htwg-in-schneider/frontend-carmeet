@@ -2,13 +2,16 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useUserStore } from './userStore.js'
+import { useNotificationsStore } from './notificationsStore.js'
 import * as svc from '../services/eventService.js'
 
 // ── localStorage helpers (mock persistence across account switches) ────────────
-const LS_EVENTS = 'carmeet_mock_events'
-const LS_JOINS  = 'carmeet_mock_joins'
-const LS_MSGS   = 'carmeet_mock_msgs'
-const LS_PARTS  = 'carmeet_mock_parts'
+const LS_EVENTS        = 'carmeet_mock_events'
+const LS_JOINS         = 'carmeet_mock_joins'
+const LS_MSGS          = 'carmeet_mock_msgs'
+const LS_PARTS         = 'carmeet_mock_parts'
+const lsJoinedIds    = (sub) => `carmeet_joined_ids_${sub}`
+const lsJoinedTitles = (sub) => `carmeet_joined_titles_${sub}`
 
 function lsGet(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key) ?? 'null') ?? fallback } catch { return fallback }
@@ -23,7 +26,7 @@ const MOCK_MESSAGES_SEED = {}
 let nextId = 200
 
 export const useEventStore = defineStore('events', () => {
-  const { getAccessTokenSilently } = useAuth0()
+  const { getAccessTokenSilently, user: auth0User } = useAuth0()
   const userStore = useUserStore()
 
   const events   = ref([])
@@ -33,7 +36,9 @@ export const useEventStore = defineStore('events', () => {
   const error     = ref(null)
   const useMock   = ref(false)
 
-  const joinedEvents = computed(() => events.value.filter(e => joinedIds.value.has(e.id)))
+  const joinedEvents = computed(() =>
+    events.value.filter(e => joinedIds.value.has(e.id) && !isOwnEvent(e))
+  )
 
   function isOwnEvent(event) {
     const p = userStore.profile
@@ -50,10 +55,46 @@ export const useEventStore = defineStore('events', () => {
     error.value = null
     try {
       const token = await getAccessTokenSilently().catch(() => null)
-      const data  = await svc.getEvents(token)
+
+      // Load persisted joined state for cross-session deletion detection
+      const sub = auth0User.value?.sub ?? 'anon'
+      const storedIds = lsGet(lsJoinedIds(sub), null)
+      const prevJoinedIds = storedIds !== null ? new Set(storedIds) : new Set(joinedIds.value)
+      const storedTitles = lsGet(lsJoinedTitles(sub), {})
+
+      const data = await svc.getEvents(token)
       events.value = Array.isArray(data) ? data : (data?.content ?? [])
       useMock.value = false
-      // Real backend: joined state comes from server — kept in joinedIds as-is
+
+      if (token) {
+        try {
+          const joined = await svc.getMyJoins(token)
+          const newJoinedIds = new Set(Array.isArray(joined) ? joined : [])
+
+          // Detect events the user was joined to but are now gone (works across sessions)
+          if (prevJoinedIds.size > 0) {
+            const currentIds = new Set(events.value.map(e => e.id))
+            const ns = useNotificationsStore()
+            for (const id of prevJoinedIds) {
+              if (!currentIds.has(id)) {
+                const title = storedTitles[id] || `Event #${id}`
+                ns.push(`Das Event „${title}" wurde gelöscht.`, 'warning')
+              }
+            }
+          }
+
+          joinedIds.value = newJoinedIds
+
+          // Persist current joined IDs and their titles for next session (user-specific)
+          lsSet(lsJoinedIds(sub), [...newJoinedIds])
+          const titles = {}
+          for (const id of newJoinedIds) {
+            const ev = events.value.find(e => e.id === id)
+            if (ev) titles[id] = ev.title
+          }
+          lsSet(lsJoinedTitles(sub), titles)
+        } catch { /* keep existing joinedIds */ }
+      }
     } catch {
       useMock.value = true
 
@@ -145,6 +186,16 @@ export const useEventStore = defineStore('events', () => {
     const next = new Set(joinedIds.value)
     next.delete(id)
     joinedIds.value = next
+
+    // Remove from organizer's persistence so they don't get a false deletion notification
+    if (!useMock.value) {
+      const sub = auth0User.value?.sub ?? 'anon'
+      lsSet(lsJoinedIds(sub), [...next])
+      const titles = lsGet(lsJoinedTitles(sub), {})
+      delete titles[id]
+      lsSet(lsJoinedTitles(sub), titles)
+    }
+
     if (useMock.value) {
       lsSet(LS_EVENTS, events.value)
       lsSet(LS_JOINS, [...joinedIds.value])
@@ -158,13 +209,22 @@ export const useEventStore = defineStore('events', () => {
   }
 
   // ── Join / Leave ───────────────────────────────────────────────────────────
-  async function joinEvent(id) {
+  async function joinEvent(id, vehicleId) {
     const token = await getAccessTokenSilently()
-    if (!useMock.value) await svc.joinEvent(token, id)
+    if (!useMock.value) await svc.joinEvent(token, id, vehicleId)
 
     joinedIds.value = new Set([...joinedIds.value, id])
     const ev = events.value.find(e => e.id === id)
     if (ev) ev.currentParticipants++
+
+    // Persist immediately so delete-detection works even without a page reload
+    if (!useMock.value) {
+      const sub = auth0User.value?.sub ?? 'anon'
+      lsSet(lsJoinedIds(sub), [...joinedIds.value])
+      const titles = lsGet(lsJoinedTitles(sub), {})
+      if (ev) titles[id] = ev.title
+      lsSet(lsJoinedTitles(sub), titles)
+    }
 
     if (useMock.value) {
       lsSet(LS_JOINS, [...joinedIds.value])
@@ -195,6 +255,15 @@ export const useEventStore = defineStore('events', () => {
     const ev = events.value.find(e => e.id === id)
     if (ev && ev.currentParticipants > 0) ev.currentParticipants--
 
+    // Remove from persistence so user doesn't get a false deletion notification
+    if (!useMock.value) {
+      const sub = auth0User.value?.sub ?? 'anon'
+      lsSet(lsJoinedIds(sub), [...joinedIds.value])
+      const titles = lsGet(lsJoinedTitles(sub), {})
+      delete titles[id]
+      lsSet(lsJoinedTitles(sub), titles)
+    }
+
     if (useMock.value) {
       lsSet(LS_JOINS, [...joinedIds.value])
 
@@ -220,6 +289,14 @@ export const useEventStore = defineStore('events', () => {
     const data  = await svc.getMessages(token, eventId)
     messages.value[eventId] = Array.isArray(data) ? data : []
     return messages.value[eventId]
+  }
+
+  async function refreshMessages(eventId) {
+    if (useMock.value) return
+    const token = await getAccessTokenSilently().catch(() => null)
+    if (!token) return
+    const data = await svc.getMessages(token, eventId).catch(() => null)
+    if (Array.isArray(data)) messages.value[eventId] = data
   }
 
   async function postMessage(eventId, content) {
@@ -265,6 +342,6 @@ export const useEventStore = defineStore('events', () => {
     events, joinedIds, messages, loading, error, useMock,
     joinedEvents, isOwnEvent, isJoined,
     fetchEvents, createEvent, updateEvent, deleteEvent,
-    joinEvent, leaveEvent, fetchMessages, postMessage, fetchParticipants,
+    joinEvent, leaveEvent, fetchMessages, refreshMessages, postMessage, fetchParticipants,
   }
 })

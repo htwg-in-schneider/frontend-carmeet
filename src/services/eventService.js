@@ -33,13 +33,22 @@ export async function deleteEvent(token, id) {
   return handle(res)
 }
 
-export async function joinEvent(token, id) {
-  const res = await fetch(`${BASE}/${id}/join`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+export async function joinEvent(token, id, vehicleId) {
+  const res = await fetch(`${BASE}/${id}/join`, {
+    method: 'POST',
+    headers: h(token),
+    body: JSON.stringify(vehicleId != null ? { vehicleId } : {}),
+  })
   return handle(res)
 }
 
 export async function leaveEvent(token, id) {
   const res = await fetch(`${BASE}/${id}/join`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+  return handle(res)
+}
+
+export async function getMyJoins(token) {
+  const res = await fetch(`${BASE}/my-joins`, { headers: { Authorization: `Bearer ${token}` } })
   return handle(res)
 }
 
