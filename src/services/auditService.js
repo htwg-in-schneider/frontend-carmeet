@@ -1,4 +1,4 @@
-const BASE_URL = '/api/admin/audit'
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin/audit`
 
 function authHeaders(token) {
   return {
@@ -16,7 +16,6 @@ async function handleResponse(res) {
   return res.json()
 }
 
-/** Build query string from a filter object, omitting null/empty values. */
 function buildQuery(params) {
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
@@ -69,11 +68,6 @@ export async function deleteAllAuditLogs(token) {
   return handleResponse(res)
 }
 
-
-/**
- * Generate a transaction ID on the frontend for grouping multi-step operations.
- * Pass the returned ID as the X-Transaction-Id header in each related API call.
- */
 export function generateTransactionId() {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()

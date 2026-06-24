@@ -245,7 +245,10 @@ const rev_filtered = computed(() => {
 async function rev_fetch() {
   rev_loading.value = true; rev_error.value = null
   try {
-    const [rRes, pRes] = await Promise.all([fetch('/api/review'), fetch('/api/product')])
+    const [rRes, pRes] = await Promise.all([
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/review`),
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/product`),
+    ])
     if (!rRes.ok) throw new Error(`HTTP ${rRes.status}`)
     rev_reviews.value = await rRes.json()
     if (pRes.ok) rev_products.value = await pRes.json()
@@ -262,7 +265,7 @@ function rev_startEdit(review) {
 async function rev_submitEdit() {
   rev_saving.value = true; rev_saveError.value = null
   try {
-    const res = await fetch(`/api/review/${rev_editing.value.id}`, {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/review/${rev_editing.value.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userName: rev_editForm.value.userName, text: rev_editForm.value.text, stars: Number(rev_editForm.value.stars), product: { id: rev_editing.value.product?.id } }),
     })
@@ -277,7 +280,7 @@ async function rev_submitEdit() {
 async function rev_confirmDeleteFn() {
   rev_deleting.value = true
   try {
-    const res = await fetch(`/api/review/${rev_confirmDelete.value}`, { method: 'DELETE' })
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/review/${rev_confirmDelete.value}`, { method: 'DELETE' })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     rev_reviews.value = rev_reviews.value.filter(r => r.id !== rev_confirmDelete.value)
     rev_confirmDelete.value = null

@@ -4,7 +4,7 @@ import { useAuth0 } from '@auth0/auth0-vue'
 import AdminNavbar from '../components/AdminNavbar.vue'
 
 const { getAccessTokenSilently } = useAuth0()
-const BASE = '/api'
+const BASE = `${import.meta.env.VITE_API_BASE_URL}/api`
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const reviews   = ref([])

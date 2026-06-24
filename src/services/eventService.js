@@ -1,4 +1,4 @@
-const BASE = '/api/events'
+const BASE = `${import.meta.env.VITE_API_BASE_URL}/api/events`
 
 function h(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }

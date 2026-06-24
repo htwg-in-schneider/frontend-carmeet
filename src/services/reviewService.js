@@ -1,4 +1,4 @@
-const BASE_URL = '/api/review'
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/review`
 
 export async function getReviewsByProductId(productId) {
   console.log(`[reviewService] GET ${BASE_URL}/product/${productId}`)

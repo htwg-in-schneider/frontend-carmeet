@@ -1,4 +1,4 @@
-const BASE_URL = '/api/admin/users'
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/admin/users`
 
 function authHeaders(token) {
   return {

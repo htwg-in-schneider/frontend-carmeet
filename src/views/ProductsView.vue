@@ -24,7 +24,7 @@ onMounted(async () => {
     <div class="products-header">
       <div class="products-label">Backend API</div>
       <h1 class="products-title">Products</h1>
-      <p class="products-subtitle">Geladen von localhost:8081/api/product</p>
+      <p class="products-subtitle">Geladen vom Backend</p>
     </div>
 
     <div v-if="loading" class="state-msg">Produkte werden geladen…</div>
