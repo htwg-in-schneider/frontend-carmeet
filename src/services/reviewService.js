@@ -1,4 +1,5 @@
-const BASE_URL = '/api/review'
+import { BASE_URL as API_BASE } from './api.js'
+const BASE_URL = `${API_BASE}/api/review`
 
 export async function getReviewsByProductId(productId) {
   console.log(`[reviewService] GET ${BASE_URL}/product/${productId}`)

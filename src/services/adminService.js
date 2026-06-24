@@ -1,4 +1,5 @@
-const BASE_URL = '/api/admin/users'
+import { BASE_URL as API_BASE } from './api.js'
+const BASE_URL = `${API_BASE}/api/admin/users`
 
 function authHeaders(token) {
   return {

@@ -1,4 +1,5 @@
-const BASE = '/api/events'
+import { BASE_URL } from './api.js'
+const BASE = `${BASE_URL}/api/events`
 
 function h(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }

@@ -1,4 +1,5 @@
-const BASE_URL = '/api/profile'
+import { BASE_URL as API_BASE } from './api.js'
+const BASE_URL = `${API_BASE}/api/profile`
 
 export async function getProfile(token) {
   const res = await fetch(BASE_URL, {
