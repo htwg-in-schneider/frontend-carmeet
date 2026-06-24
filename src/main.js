@@ -14,7 +14,7 @@ const auth0 = createAuth0({
     audience: import.meta.env.VITE_AUTH0_AUDIENCE,
     // BASE_URL is '/' in dev and '/frontend-carmeet/' in production (GitHub Pages).
     // Without the base path, Auth0 redirects to the bare origin which has no Vue app.
-    redirect_uri: window.location.origin + import.meta.env.BASE_URL,
+    redirect_uri: window.location.origin + window.location.pathname,
     scope: 'openid profile email',
   },
 })
